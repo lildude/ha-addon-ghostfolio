@@ -1,0 +1,28 @@
+configuration:
+  database_user:
+    name: Database Username
+    description: The username used to connect to your PostgreSQL server.
+  database_pass:
+    name: Database Password
+    description: The password for the user to connect to your PostgreSQL server.
+  database_port:
+    name: Database Port
+    description: The port your PostgreSQL server is listening on.
+  database_host:
+    name: Database Hostname
+    description: The hostname of your PostgreSQL server.
+  database_db:
+    name: Database Name
+    description: The name of the PostgreSQL database.
+  access_token_salt:
+    name: Access Token Salt
+    description: A random string used as salt for access tokens.
+  jwt_secret_key:
+    name: JWT Secret Key
+    description: A random string used for JSON Web Tokens (JWT).
+  api_key_coingecko_demo:
+    name: CoinGecko Demo API Key
+    description: A CoinGecko Demo API key.
+  api_key_coingecko_pro:
+    name: CoinGecko Pro API Key
+    description: A CoinGecko Pro API key.

@@ -1,0 +1,40 @@
+name: Ghostfolio
+version: "0.0.1"
+slug: ghostfolio
+description: Ghostfolio is a privacy-first, open source dashboard for your personal finances.
+url: https://github.com/lildude/homeassistant-addons/tree/master/ghostfolio
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+ingress: true
+ingress_port: 3333
+ports:
+  3333/tcp: null
+options:
+  database_user: db_user
+  database_pass: db_pass
+  database_port: 5432
+  database_host: 29b65938-postgres
+  database_db: ghostfolio
+  access_token_salt: randomstring
+  jwt_secret_key: randomstring
+  api_key_coingecko_demo: ""
+  api_key_coingecko_pro: ""
+schema:
+  database_user: str
+  database_pass: password
+  database_port: int
+  database_host: str
+  database_db: str
+  access_token_salt: str
+  jwt_secret_key: str
+  api_key_coingecko_demo: str?
+  api_key_coingecko_pro: str?
+map:
+  - share:rw
+# image: "ghcr.io/home-assistant/{arch}-addon-example"
