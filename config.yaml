@@ -11,10 +11,9 @@ arch:
 init: false
 startup: application
 boot: auto
-ingress: true
-ingress_port: 3333
+ingress: false
 ports:
-  3333/tcp: null
+  3333/tcp: 3333
 options:
   database_user: db_user
   database_pass: db_pass
