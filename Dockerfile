@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y \
         jq \
         redis \
         xz-utils \
+        nginx \
+        ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" | tar xpJ -C / \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${BUILD_ARCH}.tar.xz" | tar xpJ -C / \
@@ -32,14 +34,8 @@ RUN apt-get update && apt-get install -y \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
     && rm -rf /tmp/bashio
 
-# COPY rootfs /
-COPY run.sh /
-RUN chmod a+x /run.sh
-
-ENV CONFIG_PATH=/data/options.json
-
-WORKDIR /ghostfolio/apps/api
-CMD [ "/run.sh" ]
+COPY rootfs /
+RUN chmod a+x /etc/services.d/*/run /etc/services.d/*/finish
 
 ENTRYPOINT ["/init"]
 

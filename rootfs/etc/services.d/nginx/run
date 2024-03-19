@@ -1,0 +1,4 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+mkdir /run/nginx
+exec nginx -g 'daemon off;error_log /proc/1/fd/1 error;'

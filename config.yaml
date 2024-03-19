@@ -12,7 +12,6 @@ init: false
 startup: application
 boot: auto
 ingress: true
-ingress_port: 3333
 ports:
   3333/tcp: null
 options:
