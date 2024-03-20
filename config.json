@@ -11,6 +11,7 @@
       "amd64"
   ],
   "init": false,
+  "boot": "auto",
   "ports": {
       "3333/tcp": 3333
   },
