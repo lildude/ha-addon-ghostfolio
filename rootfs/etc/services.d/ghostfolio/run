@@ -5,18 +5,36 @@ bashio::log.info "Starting redis"
 exec redis-server &
 
 bashio::log.info "Starting Ghostfolio"
-export POSTGRES_HOST=$(bashio::config 'database_host')
-export POSTGRES_DB=$(bashio::config 'database_db')
-export POSTGRES_PASS=$(bashio::config 'database_pass')
-export POSTGRES_PORT=$(bashio::config 'database_port')
-export POSTGRES_USER=$(bashio::config 'database_user')
-export ACCESS_TOKEN_SALT=$(bashio::config 'access_token_salt')
-export JWT_SECRET_KEY=$(bashio::config 'jwt_secret_key')
-export API_KEY_COINGECKO_DEMO=$(bashio::config 'api_key_coingecko_demo')
-export API_KEY_COINGECKO_PRO=$(bashio::config 'api_key_coingecko_pro')
-export REDIS_HOST=localhost
-export REDIS_PORT=6379
-export DATABASE_URL="postgresql://$POSTGRES_USER:$POSTGRES_PASS@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?connect_timeout=300&sslmode=prefer"
+access_token_salt=$()
+jwt_secret_key=$(bashio::config 'jwt_secret_key')
+
+if bashio::config.is_empty 'access_token_salt'; then
+  access_token_salt=$(openssl rand -hex 32)
+  bashio::addon.option 'access_token_salt' "$access_token_salt"
+fi
+if bashio::config.is_empty 'jwt_secret_key'; then
+  jwt_secret_key=$(openssl rand -hex 32)
+  bashio::addon.option 'jwt_secret_key' "$jwt_secret_key"
+fi
+
+ACCESS_TOKEN_SALT=$(bashio::config 'access_token_salt')
+JWT_SECRET_KEY=$(bashio::config 'jwt_secret_key')
+
+POSTGRES_HOST=$(bashio::config 'database_host')
+POSTGRES_DB=$(bashio::config 'database_name')
+POSTGRES_PASS=$(bashio::config 'database_pass')
+POSTGRES_PORT=$(bashio::config 'database_port')
+POSTGRES_USER=$(bashio::config 'database_user')
+
+API_KEY_COINGECKO_DEMO=$(bashio::config 'api_key_coingecko_demo')
+API_KEY_COINGECKO_PRO=$(bashio::config 'api_key_coingecko_pro')
+REDIS_HOST=localhost
+REDIS_PORT=6379
+NODE_ENV=production
+DATABASE_URL="postgresql://$POSTGRES_USER:$POSTGRES_PASS@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?connect_timeout=300&sslmode=prefer"
+
+export ACCESS_TOKEN_SALT JWT_SECRET_KEY POSTGRES_HOST POSTGRES_DB POSTGRES_PASS POSTGRES_PORT POSTGRES_USER \
+       API_KEY_COINGECKO_DEMO API_KEY_COINGECKO_PRO REDIS_HOST REDIS_PORT NODE_ENV DATABASE_URL
 
 ingress_entry=$(curl -X GET \
                      -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
@@ -24,8 +42,8 @@ ingress_entry=$(curl -X GET \
                      -s http://supervisor/addons/self/info | \
                      jq -r '.data.ingress_entry')
 
-sed -Ei "s^(\`|\")/api^\1/${ingress_entry}/api^g" /ghostfolio/apps/client/*/*.js
-sed -Ei "s^\(/assets/^\(${ingress_entry}/assets/^g" /ghostfolio/apps/client/*/*.js
+sed -Ei "s^(\`|\")/api^\1${ingress_entry}/api^g" /ghostfolio/apps/client/*/*.js
+sed -Ei "s^\(/assets^\(${ingress_entry}/assets^g" /ghostfolio/apps/client/*/*.js
 
 cd /ghostfolio/apps/api
 yarn start:production
