@@ -2,7 +2,7 @@
   "name": "Ghostfolio",
   "version": "1.0.0",
   "slug": "ghostfolio",
-  "description": "Ghostfolio is a privacy-first, open source dashboard for your personal finances.",
+  "description": "Privacy-first, open source dashboard for your personal finances.",
   "url": "https://github.com/lildude/homeassistant-addons/tree/master/ghostfolio",
   "arch": [
       "armv7",
