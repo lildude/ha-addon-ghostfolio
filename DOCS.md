@@ -49,6 +49,10 @@ The configuration is self-explanatory, but essentially we need details about acc
 
 Remember to restart the add-on when the configuration is changed.
 
+## Additional Information
+
+As all the information is stored in the PostgreSQL database, this data will persist if you uninstall this add-on. To destroy this data, you'll need to either uninstall the PostgreSQL add-on or connect to the PostgreSQL server directly and drop the database.
+
 [Ghostfolio]: https://ghostfol.io
 [docker image]: https://hub.docker.com/r/ghostfolio/ghostfolio
 [PostgreSQL add-on]: https://github.com/matt-FFFFFF/hassio-addon-postgres
