@@ -32,12 +32,9 @@
       "database_port": "int",
       "database_host": "str",
       "database_name": "str",
-      "access_token_salt": "str?",
-      "jwt_secret_key": "str?",
       "api_key_coingecko_demo": "str?",
-      "api_key_coingecko_pro": "str?"
-  },
-  "map": [
-      "share:rw"
-  ]
+      "api_key_coingecko_pro": "str?",
+      "access_token_salt": "str?",
+      "jwt_secret_key": "str?"
+  }
 }
