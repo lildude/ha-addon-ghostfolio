@@ -10,7 +10,6 @@
       "amd64"
   ],
   "init": false,
-  "boot": "auto",
   "ingress": true,
   "panel_icon": "mdi:ghost",
   "ports": {
