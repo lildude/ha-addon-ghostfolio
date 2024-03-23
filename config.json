@@ -36,5 +36,6 @@
       "api_key_coingecko_pro": "str?",
       "access_token_salt": "str?",
       "jwt_secret_key": "str?"
-  }
+  },
+  "codenotary": "colin@symr.io"
 }
