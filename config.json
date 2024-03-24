@@ -36,5 +36,6 @@
       "access_token_salt": "str?",
       "jwt_secret_key": "str?"
   },
-  "codenotary": "colin@symr.io"
+  "codenotary": "colin@symr.io",
+  "image": "ghcr.io/lildude/ghostfolio-{arch}"
 }
