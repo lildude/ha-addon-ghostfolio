@@ -8,7 +8,7 @@ Manage your wealth like a boss.
 
 This addon allows you to run [Ghostfolio][] on your Home Assistant server based on the the official Ghostfolio [docker image][].
 
-![Ghostfolio Version](https://img.shields.io/badge/dynamic/json?label=Ghostfolio%20Version&url=https%3A%2F%2Fraw.githubusercontent.com%2Flildude%2Fhomeassistant-addons%2Fmain%2Fghostfolio%2Fbuild.json&query=%24.args.ghostfolio_version)
+![Ghostfolio Version](https://img.shields.io/badge/dynamic/json?label=Ghostfolio%20Version&url=https%3A%2F%2Fraw.githubusercontent.com%2Flildude%2Fha-addons%2Fmain%2Fghostfolio%2Fbuild.json&query=%24.args.ghostfolio_version)
 ![Supports amd64 Architecture][amd64-shield]
 ![Supports armhf Architecture][armhf-shield]
 ![Supports armv7 Architecture][armv7-shield]
