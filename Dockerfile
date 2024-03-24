@@ -44,3 +44,8 @@ HEALTHCHECK \
     --retries=5 \
     --timeout=5s \
     CMD curl --fail "http://localhost:3333/api/v1/health" &>/dev/null || exit 1
+
+LABEL \
+  io.hass.version="1.0.0" \
+  io.hass.type="addon" \
+  io.hass.arch="aarch64|amd64|armv7"
