@@ -8,7 +8,7 @@ This addon allows you to run [Ghostfolio][] on your Home Assistant server based 
 
 ## Requirements
 
-Ghostfolio needs a PostgreSQL database. My add-on repository includes the configuration for this [PostgreSQL add-on][] for convenience but you're welcome to use your own.
+Ghostfolio needs a PostgreSQL database. All development and testing has been done using [PostgreSQL add-on][] for convenience but you're welcome to use your own.
 
 ## Installation
 
