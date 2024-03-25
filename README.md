@@ -13,6 +13,10 @@ This addon allows you to run [Ghostfolio][] on your Home Assistant server based 
 ![Supports armhf Architecture][armhf-shield]
 ![Supports armv7 Architecture][armv7-shield]
 
+| Light Mode                                         | Dark Mode                                     |
+| --------------------------------------------- | -------------------------------------------- |
+| ![Light screenshot](imgs/screenshot-light.png) | ![Dark screenshot](imgs/screenshot-dark.png) |
+
 [Ghostfolio]: https://ghostfol.io
 [docker image]: https://hub.docker.com/r/ghostfolio/ghostfolio
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
