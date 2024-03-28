@@ -17,9 +17,7 @@ This addon allows you to run [Ghostfolio][] on your Home Assistant server based 
 
 | Light Mode                                     | Dark Mode                                    |
 | ---------------------------------------------- | -------------------------------------------- |
-| ![Light screenshot](imgs/screenshot-light.png) | ![Dark screenshot](imgs/screenshot-dark.png) |
+| ![Light screenshot](https://raw.githubusercontent.com/lildude/ha-addons/main/ghostfolio/imgs/screenshot-light.png) | ![Dark screenshot](https://raw.githubusercontent.com/lildude/ha-addons/main/ghostfolio/imgs/screenshot-dark.png) |
 
 [Ghostfolio]: https://ghostfol.io
 [docker image]: https://hub.docker.com/r/ghostfolio/ghostfolio
-
-[Ghostfolio Version]: 
