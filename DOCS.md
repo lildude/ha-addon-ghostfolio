@@ -6,25 +6,6 @@ Manage your wealth like a boss.
 
 This addon allows you to run [Ghostfolio][] on your Home Assistant server based on the the official Ghostfolio [docker image][].
 
-## Requirements
-
-Ghostfolio needs a PostgreSQL database. All development and testing has been done using [PostgreSQL add-on][] for convenience but you're welcome to use your own.
-
-## Installation
-
-The installation of this add-on is pretty straightforward and no different to installing any other Home Assistant add-on.
-
-1. Click the Home Assistant My button below to open the add-on on your Home Assistant instance.
-
-   [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Flildude%2Fha-addon-ghostfolio)
-
-1. Install this add-on.
-1. Enter your PostgreSQL configuration information.
-1. Click the `Save` button to store your configuration.
-1. Start the add-on.
-1. Check the logs of the add-on to see if everything went well.
-1. Click the "OPEN WEB UI" button to open Studio Code Server.
-
 ## Configuration
 
 The configuration is self-explanatory, but essentially we need details about accessing the PostgreSQL database.
@@ -55,4 +36,3 @@ As all the information is stored in the PostgreSQL database, this data will pers
 
 [Ghostfolio]: https://ghostfol.io
 [docker image]: https://hub.docker.com/r/ghostfolio/ghostfolio
-[PostgreSQL add-on]: https://github.com/matt-FFFFFF/hassio-addon-postgres
