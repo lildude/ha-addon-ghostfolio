@@ -17,8 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Initialize builds
     outputs:
-      changed_addons: ${{ steps.changed_addons.outputs.addons }}
-      changed: ${{ steps.changed_addons.outputs.changed }}
+      changed: ${{ steps.check.outputs.changed }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4.1.2
@@ -27,43 +26,33 @@ jobs:
         id: changed_files
         uses: jitterbit/get-changed-files@v1
 
-      - name: Find add-on directories
-        id: addons
-        uses: home-assistant/actions/helpers/find-addons@master
-
-      - name: Get changed add-ons
-        id: changed_addons
+      - name: Check if monitored files changed
+        id: check
         run: |
-          declare -a changed_addons
-          for addon in ${{ steps.addons.outputs.addons }}; do
-            if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
-              for file in ${{ env.MONITORED_FILES }}; do
-                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
-                    if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
-                      changed_addons+=("\"${addon}\",");
-                    fi
-                  fi
-              done
+          declare -a changed
+          for file in ${{ env.MONITORED_FILES }}; do
+            if [[ -n ${changed} ]]; then
+              break
+            fi
+
+            if [[ "${{ steps.changed_files.outputs.all }}" =~ $file ]]; then
+              changed=true
             fi
           done
 
-          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
-
           if [[ -n ${changed} ]]; then
-            echo "Changed add-ons: $changed";
-            echo "::set-output name=changed::true";
-            echo "::set-output name=addons::[$changed]";
+            echo "A monitored file changed.";
+            echo "changed=true" >> $GITHUB_OUTPUT
           else
-            echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
+            echo "No monitored files changed.";
           fi
   build:
     needs: init
     runs-on: ubuntu-latest
     if: needs.init.outputs.changed == 'true'
-    name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
+    name: Build add-on
     strategy:
       matrix:
-        addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
         arch: ["amd64", "armv7", "aarch64"]
 
     steps:
@@ -74,20 +63,20 @@ jobs:
         id: info
         uses: home-assistant/actions/helpers/info@master
         with:
-          path: "./${{ matrix.addon }}"
+          path: "./"
 
       - name: Check if add-on should be built
         id: check
         run: |
           if [[ "${{ steps.info.outputs.architectures }}" =~ ${{ matrix.arch }} ]]; then
-             echo "::set-output name=build_arch::true";
-             echo "::set-output name=image::$(echo ${{ steps.info.outputs.image }} | cut -d'/' -f3)";
+             echo "build_arch=true" >> $GITHUB_OUTPUT
+             echo "image=$(echo ${{ steps.info.outputs.image }} | cut -d'/' -f3)" >> $GITHUB_OUTPUT
              if [[ -z "${{ github.head_ref }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
                  echo "BUILD_ARGS=" >> $GITHUB_ENV;
              fi
            else
-             echo "${{ matrix.arch }} is not a valid arch for ${{ matrix.addon }}, skipping build";
-             echo "::set-output name=build_arch::false";
+             echo "${{ matrix.arch }} is not a valid arch for this add-on, skipping build";
+             echo "build_arch=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Login to GitHub Container Registry
@@ -98,13 +87,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build ${{ matrix.addon }} add-on
+      - name: Build add-on
         if: steps.check.outputs.build_arch == 'true'
         uses: home-assistant/builder@master
         with:
           args: |
             ${{ env.BUILD_ARGS }} \
             --${{ matrix.arch }} \
-            --target /data/${{ matrix.addon }} \
+            --target /data/ \
             --image "${{ steps.check.outputs.image }}" \
             --addon
