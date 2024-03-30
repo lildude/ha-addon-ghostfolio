@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "slug": "ghostfolio",
   "description": "Privacy-first, open source dashboard for your personal finances.",
-  "url": "https://github.com/lildude/ha-addon-ghostfolio/tree/main/ghostfolio",
+  "url": "https://github.com/lildude/ha-addon-ghostfolio",
   "arch": [
       "armv7",
       "aarch64",
