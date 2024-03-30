@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Initialize builds
     outputs:
-      changed: ${{ steps.changed_files.outputs.changed }}
+      changed: ${{ steps.check.outputs.changed }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4.1.2
@@ -27,6 +27,7 @@ jobs:
         uses: jitterbit/get-changed-files@v1
 
       - name: Check if monitored files changed
+        id: check
         run: |
           declare -a changed
           for file in ${{ env.MONITORED_FILES }}; do
