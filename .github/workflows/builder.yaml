@@ -27,43 +27,31 @@ jobs:
         id: changed_files
         uses: jitterbit/get-changed-files@v1
 
-      - name: Find add-on directories
-        id: addons
-        uses: home-assistant/actions/helpers/find-addons@master
+      - run: |
+          declare -a changed
+          for file in ${{ env.MONITORED_FILES }}; do
+            if [[ -n ${changed} ]]; then
+              break
+            fi
 
-      - name: Get changed add-ons
-        id: changed_addons
-        run: |
-          declare -a changed_addons
-          for addon in ${{ steps.addons.outputs.addons }}; do
-            if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
-              for file in ${{ env.MONITORED_FILES }}; do
-                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
-                    if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
-                      changed_addons+=("\"${addon}\",");
-                    fi
-                  fi
-              done
+            if [[ "${{ steps.changed_files.outputs.all }}" =~ $file ]]; then
+              changed=true
             fi
           done
 
-          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
-
           if [[ -n ${changed} ]]; then
-            echo "Changed add-ons: $changed";
+            echo "A monitored file changed.";
             echo "::set-output name=changed::true";
-            echo "::set-output name=addons::[$changed]";
           else
-            echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
+            echo "No monitored files changed.";
           fi
   build:
     needs: init
     runs-on: ubuntu-latest
     if: needs.init.outputs.changed == 'true'
-    name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
+    name: Build add-on
     strategy:
       matrix:
-        addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
         arch: ["amd64", "armv7", "aarch64"]
 
     steps:
@@ -74,7 +62,7 @@ jobs:
         id: info
         uses: home-assistant/actions/helpers/info@master
         with:
-          path: "./${{ matrix.addon }}"
+          path: "./"
 
       - name: Check if add-on should be built
         id: check
@@ -86,7 +74,7 @@ jobs:
                  echo "BUILD_ARGS=" >> $GITHUB_ENV;
              fi
            else
-             echo "${{ matrix.arch }} is not a valid arch for ${{ matrix.addon }}, skipping build";
+             echo "${{ matrix.arch }} is not a valid arch for this add-on, skipping build";
              echo "::set-output name=build_arch::false";
           fi
 
@@ -98,13 +86,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build ${{ matrix.addon }} add-on
+      - name: Build add-on
         if: steps.check.outputs.build_arch == 'true'
         uses: home-assistant/builder@master
         with:
           args: |
             ${{ env.BUILD_ARGS }} \
             --${{ matrix.arch }} \
-            --target /data/${{ matrix.addon }} \
+            --target /data/${GITHUB_REPOSITORY##*/} \
             --image "${{ steps.check.outputs.image }}" \
             --addon
