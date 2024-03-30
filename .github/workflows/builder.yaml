@@ -27,7 +27,8 @@ jobs:
         id: changed_files
         uses: jitterbit/get-changed-files@v1
 
-      - run: |
+      - name: Check if monitored files changed
+        run: |
           declare -a changed
           for file in ${{ env.MONITORED_FILES }}; do
             if [[ -n ${changed} ]]; then
