@@ -94,6 +94,6 @@ jobs:
           args: |
             ${{ env.BUILD_ARGS }} \
             --${{ matrix.arch }} \
-            --target /data/${GITHUB_REPOSITORY##*/} \
+            --target /data/ \
             --image "${{ steps.check.outputs.image }}" \
             --addon
