@@ -37,5 +37,5 @@
       "jwt_secret_key": "str?"
   },
   "codenotary": "colin@symr.io",
-  "image": "ghcr.io/lildude/ha-addon-ghostfolio/ghostfolio-{arch}"
+  "image": "ghcr.io/lildude/ghostfolio-{arch}"
 }
