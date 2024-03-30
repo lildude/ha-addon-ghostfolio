@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Initialize builds
     outputs:
-      changed_addons: ${{ steps.changed_addons.outputs.addons }}
       changed: ${{ steps.changed_addons.outputs.changed }}
     steps:
       - name: Check out the repository
