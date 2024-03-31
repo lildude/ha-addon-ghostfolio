@@ -1,4 +1,9 @@
 {
+  "build_from": {
+    "aarch64": "ghostfolio/ghostfolio:not-used",
+    "amd64": "ghostfolio/ghostfolio:not-used",
+    "armv7": "ghostfolio/ghostfolio:not-used"
+  },
   "args": {
     "ghostfolio_version": "2.65.0"
   },
