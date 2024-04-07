@@ -27,7 +27,7 @@ The configuration is self-explanatory, but essentially we need details about acc
 - `access_token_salt`: (Optional) A random string used as salt for access tokens. This will be auto-generated on first run if not set.
 
 - `jwt_secret_key`: (Optional) A random string used for JSON Web Tokens (JWT). This will be auto-generated on first run if not set.
-- `silent`: (Optional) Hide all output except errors in the log file.
+- `silent`: (Optional) Hide all output except errors in the log file. Default: `false`.
 
 Remember to restart the add-on when the configuration is changed.
 

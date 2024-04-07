@@ -27,5 +27,5 @@ configuration:
     name: CoinGecko Pro API Key
     description: A CoinGecko Pro API key.
   silent:
-    name: Silent mode.
+    name: Silent mode
     description: Hide all output except errors in the log file.
