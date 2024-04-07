@@ -5,7 +5,7 @@
     "armv7": "ghostfolio/ghostfolio:not-used"
   },
   "args": {
-    "ghostfolio_version": "2.65.0"
+    "ghostfolio_version": "2.71.0"
   },
   "labels": {
     "org.opencontainers.image.title": "Home Assistant Add-on: Ghostfolio",
