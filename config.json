@@ -1,6 +1,6 @@
 {
   "name": "Ghostfolio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "slug": "ghostfolio",
   "description": "Privacy-first, open source dashboard for your personal finances.",
   "url": "https://github.com/lildude/ha-addon-ghostfolio",
@@ -34,7 +34,8 @@
       "api_key_coingecko_demo": "str?",
       "api_key_coingecko_pro": "str?",
       "access_token_salt": "str?",
-      "jwt_secret_key": "str?"
+      "jwt_secret_key": "str?",
+      "silent": "bool?"
   },
   "codenotary": "colin@symr.io",
   "image": "ghcr.io/lildude/ha-addon-ghostfolio-{arch}"
