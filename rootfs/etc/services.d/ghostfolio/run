@@ -2,10 +2,18 @@
 # -*- bash -*-
 # shellcheck shell=bash
 set -e
-bashio::log.info "Starting redis"
-exec redis-server &
 
-bashio::log.info "Starting Ghostfolio"
+if bashio::config.true 'silent'; then
+  bashio::log.warning "Silent mode activated. Only errors will be shown. Please disable in addon options if you need to debug"
+fi
+
+bashio::log.info "Starting redis"
+if bashio::config.true 'silent'; then
+  exec redis-server > /dev/null 2>&1 &
+else
+  exec redis-server &
+fi
+
 access_token_salt=$()
 jwt_secret_key=$(bashio::config 'jwt_secret_key')
 
@@ -48,5 +56,10 @@ if [[ $(grep hassio_ingress /ghostfolio/apps/client/en/main.*.js) -eq 0 ]]; then
   sed -Ei "s^\(/assets^\(${ingress_entry}/assets^g" /ghostfolio/apps/client/*/*.js
 fi
 
+bashio::log.info "Starting Ghostfolio"
 cd /ghostfolio/apps/api
-yarn start:production
+if bashio::config.true 'silent'; then
+  yarn start:production >/dev/null
+else
+  yarn start:production
+fi
