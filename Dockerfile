@@ -45,7 +45,7 @@ LABEL \
     org.opencontainers.image.title="Home Assistant Add-on: Ghostfolio" \
     org.opencontainers.image.description="Privacy-first, open source dashboard for your personal finances." \
     org.opencontainers.image.source="https://github.com/lildude/ha-addon-ghostfolio/" \
-    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.licenses="MIT"
 
 HEALTHCHECK \
     --interval=10s \
