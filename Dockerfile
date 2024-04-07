@@ -1,4 +1,4 @@
-FROM ghostfolio/ghostfolio:2.65.0
+FROM ghostfolio/ghostfolio:2.71.0
 
 ARG BUILD_ARCH
 ARG BASHIO_VERSION=0.16.2
@@ -40,6 +40,12 @@ COPY rootfs /
 RUN chmod a+x /etc/services.d/*/run /etc/services.d/*/finish
 
 ENTRYPOINT ["/init"]
+
+LABEL \
+    org.opencontainers.image.title="Home Assistant Add-on: Ghostfolio" \
+    org.opencontainers.image.description="Privacy-first, open source dashboard for your personal finances." \
+    org.opencontainers.image.source="https://github.com/lildude/ha-addon-ghostfolio/" \
+    org.opencontainers.image.licenses="MIT"
 
 HEALTHCHECK \
     --interval=10s \
