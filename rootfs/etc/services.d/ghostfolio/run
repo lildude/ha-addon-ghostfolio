@@ -51,10 +51,10 @@ ingress_entry=$(curl -X GET \
                      -s http://supervisor/addons/self/info | \
                      jq -r '.data.ingress_entry')
 
-if [[ $(grep hassio_ingress /ghostfolio/apps/client/en/main.*.js) -eq 0 ]]; then
-  sed -Ei "s^(\`|\")/api^\1${ingress_entry}/api^g" /ghostfolio/apps/client/*/*.js
-  sed -Ei "s^\(/assets^\(${ingress_entry}/assets^g" /ghostfolio/apps/client/*/*.js
-fi
+# if [[ $(grep hassio_ingress /ghostfolio/apps/client/en/main.*.js) -eq 0 ]]; then
+#   sed -Ei "s^(\`|\")/api^\1${ingress_entry}/api^g" /ghostfolio/apps/client/*/*.js
+#   sed -Ei "s^\(/assets^\(${ingress_entry}/assets^g" /ghostfolio/apps/client/*/*.js
+# fi
 
 bashio::log.info "Starting Ghostfolio"
 cd /ghostfolio/apps/api

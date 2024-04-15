@@ -1,0 +1,4 @@
+#!/command/with-contenv bashio
+# -*- bash -*-
+# shellcheck shell=bash
+exec caddy run --config /etc/caddy/Caddyfile

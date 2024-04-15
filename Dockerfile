@@ -18,8 +18,7 @@ RUN apt-get update && apt-get install -y \
         jq \
         redis \
         xz-utils \
-        nginx \
-        ca-certificates \
+        procps \
     && S6_ARCH="${BUILD_ARCH}" \
     && if [ "${BUILD_ARCH}" = "amd64" ]; then S6_ARCH="x86_64"; \
     elif [ "${BUILD_ARCH}" = "armv7" ]; then S6_ARCH="arm"; fi \
@@ -34,7 +33,14 @@ RUN apt-get update && apt-get install -y \
     && curl -Ls "https://github.com/hassio-addons/bashio/archive/v${BASHIO_VERSION}.tar.gz" | tar xz --strip 1 -C /tmp/bashio \
     && mv /tmp/bashio/lib /usr/lib/bashio \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
-    && rm -rf /tmp/bashio
+    && rm -rf /tmp/bashio \
+    && if [ "${BUILD_ARCH}" = "aarch64" ]; then CAD_ARCH="arm64"; \
+    elif [ "${BUILD_ARCH}" = "armv7" ]; then CAD_ARCH="arm&arm=7"; fi \
+    && curl -Ls \
+        --header "Accept: application/tar+gzip, application/x-gzip, application/octet-stream" \
+        "https://caddyserver.com/api/download?os=linux&arch=${CAD_ARCH}" -o /usr/bin/caddy \
+    && chmod 0755 /usr/bin/caddy \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY rootfs /
 RUN chmod a+x /etc/services.d/*/run /etc/services.d/*/finish

@@ -1,0 +1,6 @@
+
+:8099 {
+  reverse_proxy {
+    to localhost:3333
+  }
+}
