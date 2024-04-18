@@ -46,7 +46,7 @@ jobs:
         with:
           path: repo
           repository: lildude/ha-addons
-          token: ${{ secrets.ADDON_REPO_PAT }}
+          token: ${{ secrets.HA_ADDONS_REPO_PAT }}
       - name: Update addon repo
         run: |
           cp -vf ${{ github.workspace }}/ghostfolio/*.png ${{ github.workspace }}/repo/ghostfolio
