@@ -1,6 +1,6 @@
 {
   "name": "Ghostfolio",
-  "version": "1.1.0",
+  "version": "dev",
   "slug": "ghostfolio",
   "description": "Privacy-first, open source dashboard for your personal finances.",
   "url": "https://github.com/lildude/ha-addon-ghostfolio",
