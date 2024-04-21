@@ -9,11 +9,14 @@ on:
 name: Releaser
 
 jobs:
-  build:
+  release:
     name: Create Release
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semver.outputs.semver }}
     permissions:
       contents: write
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -50,6 +53,7 @@ jobs:
           path: repo
           repository: lildude/ha-addons
           token: ${{ secrets.HA_ADDONS_PAT }}
+
       - name: Update addon repo
         run: |
           cp -vf ${{ github.workspace }}/ghostfolio/*.png ${{ github.workspace }}/repo/ghostfolio
@@ -64,3 +68,13 @@ jobs:
             git push
           fi
         working-directory: ${{ github.workspace }}/repo/ghostfolio
+
+  build:
+    name: Build addon
+    needs: release
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/publisher.yaml
+    with:
+      version: ${{ needs.release.outputs.version }}
