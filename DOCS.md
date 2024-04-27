@@ -35,6 +35,8 @@ The configuration is self-explanatory, but essentially we need details about acc
 
 Remember to restart the add-on when the configuration is changed.
 
+To use this add-on with a reverse proxy, like [Nginx Proxy Manager][rev-proxy], you will need to enable "Show disabled ports" in the Network section of the add-on configuration and set a port.
+
 ## Changelog & Releases
 
 This repository keeps a change log using [GitHub's releases][releases] functionality.
@@ -56,3 +58,4 @@ To destroy this data, you'll need to either uninstall the PostgreSQL add-on or c
 [postgres]: https://github.com/matt-FFFFFF/hassio-addon-postgres
 [releases]: https://github.com/lildude/ha-addon-ghostfolio/releases
 [semver]: https://semver.org/spec/v2.0.0.html
+[rev-proxy]: https://github.com/hassio-addons/addon-nginx-proxy-manager

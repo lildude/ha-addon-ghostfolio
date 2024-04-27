@@ -51,9 +51,15 @@ ingress_entry=$(curl -X GET \
                      -s http://supervisor/addons/self/info | \
                      jq -r '.data.ingress_entry')
 
-if [[ $(grep hassio_ingress /ghostfolio/apps/client/en/main.*.js) -eq 0 ]]; then
-  sed -Ei "s^(\`|\")/api^\1${ingress_entry}/api^g" /ghostfolio/apps/client/*/*.js
-  sed -Ei "s^\(/assets^\(${ingress_entry}/assets^g" /ghostfolio/apps/client/*/*.js
+if bashio::var.is_empty "$(bashio::addon.port 3333)"; then
+  if [[ $(grep hassio_ingress /ghostfolio/apps/client/en/main.*.js) -eq 0 ]]; then
+    sed -Ei.direct "s^(\`|\")/api^\1${ingress_entry}/api^g" /ghostfolio/apps/client/*/*.js
+    sed -Ei.direct "s^\(/assets^\(${ingress_entry}/assets^g" /ghostfolio/apps/client/*/*.js
+  fi
+else
+  if [[ $(find "/ghostfolio/apps/client/en/*.js.direct" 2> /dev/null | wc -l) -gt 0 ]]; then
+    find /ghostfolio/apps/ -name '*.direct' -exec sh -c 'echo "$0" "${0%.direct}"' {} \;
+  fi
 fi
 
 bashio::log.info "Starting Ghostfolio"
