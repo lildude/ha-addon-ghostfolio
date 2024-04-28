@@ -45,23 +45,6 @@ DATABASE_URL="postgresql://$POSTGRES_USER:$POSTGRES_PASS@$POSTGRES_HOST:$POSTGRE
 export ACCESS_TOKEN_SALT JWT_SECRET_KEY POSTGRES_HOST POSTGRES_DB POSTGRES_PASS POSTGRES_PORT POSTGRES_USER \
        API_KEY_COINGECKO_DEMO API_KEY_COINGECKO_PRO REDIS_HOST REDIS_PORT NODE_ENV DATABASE_URL
 
-ingress_entry=$(curl -X GET \
-                     -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
-                     -H "Content-Type: application/json" \
-                     -s http://supervisor/addons/self/info | \
-                     jq -r '.data.ingress_entry')
-
-if bashio::var.is_empty "$(bashio::addon.port 3333)"; then
-  if [[ $(grep hassio_ingress /ghostfolio/apps/client/en/main.*.js) -eq 0 ]]; then
-    sed -Ei.direct "s^(\`|\")/api^\1${ingress_entry}/api^g" /ghostfolio/apps/client/*/*.js
-    sed -Ei.direct "s^\(/assets^\(${ingress_entry}/assets^g" /ghostfolio/apps/client/*/*.js
-  fi
-else
-  if [[ $(find "/ghostfolio/apps/client/en/*.js.direct" 2> /dev/null | wc -l) -gt 0 ]]; then
-    find /ghostfolio/apps/ -name '*.direct' -exec sh -c 'echo "$0" "${0%.direct}"' {} \;
-  fi
-fi
-
 bashio::log.info "Starting Ghostfolio"
 cd /ghostfolio/apps/api
 if bashio::config.true 'silent'; then
