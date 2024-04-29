@@ -1,0 +1,27 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableDependencyDashboard"
+  ],
+  "prHourlyLimit": 4,
+  "prBodyTemplate": "{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",
+  "semanticCommits": "disabled",
+  "commitMessageTopic": "{{#if (containsString depName 'ghostfolio')}}Ghostfolio{{else}}{{depName}}{{/if}}",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": "^build\\.json$",
+      "matchStrings": [
+        "\"ghostfolio_version\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "ghostfolio/ghostfolio"
+    }
+  ],
+  "prBodyColumns": [
+    "Package",
+    "Update",
+    "Change"
+  ]
+}
