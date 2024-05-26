@@ -40,7 +40,7 @@ The installation of this add-on is pretty straightforward and no different to in
 1. Click the `Save` button to store your configuration.
 1. Start the add-on.
 1. Check the logs of the add-on to see if everything went well.
-1. Click the `OPEN WEB UI` button to open Studio Code Server.
+1. Click the `OPEN WEB UI` button to open Ghostfolio.
 
 [addon]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Flildude%2Fha-addons
 [addons-repo]: https://github.com/lildude/ha-addons
