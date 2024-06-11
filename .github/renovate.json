@@ -8,12 +8,16 @@
   "prBodyTemplate": "{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",
   "semanticCommits": "disabled",
   "commitMessageTopic": "{{#if (containsString depName 'ghostfolio')}}Ghostfolio{{else}}{{depName}}{{/if}}",
+  "enabledManagers": ["custom.regex", "ci.github-actions"],
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": "^build\\.json$",
+      "fileMatch": ["^Dockerfile$", "^build.json$"],
+      "matchStringsStrategy": "any",
       "matchStrings": [
-        "\"ghostfolio_version\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+        "FROM=(?<depName>.*?):(?<currentValue>.*?)\\s+",
+        "\"ghostfolio_version\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "(aarch64|amd64|armhf|armv7|i386):\\s[\"']?(?<depName>.*?):(?<currentValue>.*?)[\"']?\\s"
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "ghostfolio/ghostfolio"
