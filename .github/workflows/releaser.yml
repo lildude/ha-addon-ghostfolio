@@ -32,15 +32,9 @@ jobs:
         with:
           semver-input: ${{ env.latest_release }}
           increment: ${{ github.event.inputs.semverIncrement }}
-      - name: Create tag
-        run: |
-          git config --global user.email "actions.no-reply@github.com"
-          git config --global user.name "GitHub Actions"
-          git tag -a v${{ steps.semver.outputs.semver }} -m 'Release automation'
-          git push --tags
-        working-directory: ${{ github.workspace }}/ghostfolio
       - name: Get Ghostfolio release notes
         run: |
+          touch CHANGELOG.txt
           gh pr list --repo lildude/ha-addon-ghostfolio --state=merged --search="Update Ghostfolio" --limit=1 --json=body --jq '.[].body' | sed -n "/<\/summary>/,/<\/details>/p" | sed '1d;$d' > changelog.tmp
           if [ -s changelog.tmp ]; then
             echo "## Ghostfolio Release Notes" > CHANGELOG.txt
@@ -48,6 +42,15 @@ jobs:
             echo "---" >> CHANGELOG.txt
           fi
           rm -f CHANGELOG.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create tag
+        run: |
+          git config --global user.email "actions.no-reply@github.com"
+          git config --global user.name "GitHub Actions"
+          git tag -a v${{ steps.semver.outputs.semver }} -m 'Release automation'
+          git push --tags
+        working-directory: ${{ github.workspace }}/ghostfolio
       - name: Create release
         uses: softprops/action-gh-release@v2.0.5
         with:
