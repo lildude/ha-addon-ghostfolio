@@ -41,7 +41,6 @@ jobs:
             cat changelog.tmp >> CHANGELOG.txt
             echo "---" >> CHANGELOG.txt
           fi
-          rm -f CHANGELOG.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create tag
