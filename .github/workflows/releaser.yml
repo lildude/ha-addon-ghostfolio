@@ -39,7 +39,7 @@ jobs:
           if [ -s changelog.tmp ]; then
             echo "## Ghostfolio Release Notes" > CHANGELOG.txt
             cat changelog.tmp >> CHANGELOG.txt
-            echo "---\n\n## Add-on Release Notes\n\n" >> CHANGELOG.txt
+            echo -e "---\n\n## Add-on Release Notes\n\n" >> CHANGELOG.txt
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
