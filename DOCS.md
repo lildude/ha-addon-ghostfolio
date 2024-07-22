@@ -55,7 +55,7 @@ To destroy this data, you'll need to either uninstall the PostgreSQL add-on or c
 
 [docker]: https://hub.docker.com/r/ghostfolio/ghostfolio
 [ghostfolio]: https://ghostfol.io
-[postgres]: https://github.com/matt-FFFFFF/hassio-addon-postgres
+[postgres]: https://github.com/alexbelgium/hassio-addons/tree/master/postgres
 [releases]: https://github.com/lildude/ha-addon-ghostfolio/releases
 [semver]: https://semver.org/spec/v2.0.0.html
 [rev-proxy]: https://github.com/hassio-addons/addon-nginx-proxy-manager
