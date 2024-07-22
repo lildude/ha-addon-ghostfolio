@@ -17,7 +17,7 @@ The configuration is self-explanatory, but essentially we need details about acc
 
 - `database_port`: The port your PostgreSQL server is listening on. Default: `5432`.
 
-- `database_host`: The hostname of your PostgreSQL server. Default: `29b65938-postgres` for the [PostgreSQL add-on][postgres].
+- `database_host`: The hostname of your PostgreSQL server.
 
 - `database_name`: The name of the PostgreSQL database to create and use. Default: `ghostfolio`.
 
@@ -55,7 +55,6 @@ To destroy this data, you'll need to either uninstall the PostgreSQL add-on or c
 
 [docker]: https://hub.docker.com/r/ghostfolio/ghostfolio
 [ghostfolio]: https://ghostfol.io
-[postgres]: https://github.com/alexbelgium/hassio-addons/tree/master/postgres
 [releases]: https://github.com/lildude/ha-addon-ghostfolio/releases
 [semver]: https://semver.org/spec/v2.0.0.html
 [rev-proxy]: https://github.com/hassio-addons/addon-nginx-proxy-manager
