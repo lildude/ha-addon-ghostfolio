@@ -23,7 +23,8 @@
       "database_pass": null,
       "database_port": 5432,
       "database_host": null,
-      "database_name": "ghostfolio"
+      "database_name": "ghostfolio",
+      "env_vars": []
   },
   "schema": {
       "database_user": "str",
@@ -35,7 +36,11 @@
       "api_key_coingecko_pro": "str?",
       "access_token_salt": "str?",
       "jwt_secret_key": "str?",
-      "silent": "bool?"
+      "silent": "bool?",
+      "env_vars": [{
+          "name": "str?",
+          "value": "str?"
+      }]
   },
   "codenotary": "colin@symr.io",
   "image": "ghcr.io/lildude/ha-addon-ghostfolio-{arch}"
