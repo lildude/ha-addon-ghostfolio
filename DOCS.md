@@ -33,6 +33,15 @@ The configuration is self-explanatory, but essentially we need details about acc
 
 - `silent`: (Optional) Hide all output except errors in the log file. Default: `false`.
 
+- `env_vars`: (Optional) Set additional environment variables for Ghostfolio which aren't currently exposed by the configuration options in this add-on.
+
+  Each entry is made up of a name and value:
+
+  - `name`: The case-sensitive environment variable name.
+  - `value`: The value to be set in the environment variable.
+
+  Note: These will also overwrite any environment variable set using the configuration options above.
+
 Remember to restart the add-on when the configuration is changed.
 
 To use this add-on with a reverse proxy, like [Nginx Proxy Manager][rev-proxy], you will need to enable "Show disabled ports" in the Network section of the add-on configuration and set a port.

@@ -45,6 +45,14 @@ DATABASE_URL="postgresql://$POSTGRES_USER:$POSTGRES_PASS@$POSTGRES_HOST:$POSTGRE
 export ACCESS_TOKEN_SALT JWT_SECRET_KEY POSTGRES_HOST POSTGRES_DB POSTGRES_PASS POSTGRES_PORT POSTGRES_USER \
        API_KEY_COINGECKO_DEMO API_KEY_COINGECKO_PRO REDIS_HOST REDIS_PORT NODE_ENV DATABASE_URL
 
+# These are optional and applied last so we can override those set above if needed.
+for env_var in $(bashio::config 'env_vars|keys'); do
+    name=$(bashio::config "env_vars[${env_var}].name")
+    value=$(bashio::config "env_vars[${env_var}].value")
+    bashio::log.debug "Setting Env Variable ${name} to ${value}"
+    export "${name}=${value}"
+done
+
 bashio::log.info "Starting Ghostfolio"
 cd /ghostfolio/apps/api
 if bashio::config.true 'silent'; then
