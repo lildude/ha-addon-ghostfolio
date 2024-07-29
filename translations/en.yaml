@@ -30,5 +30,5 @@ configuration:
     name: Silent mode
     description: Hide all output except errors in the log file.
   env_vars:
-    name: Additional Environment Variables
+    name: Environment Variables
     description: Set additional environment variables for Ghostfolio which aren't currently exposed by the configuration options in this add-on.
