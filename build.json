@@ -5,7 +5,7 @@
     "armv7": "ghostfolio/ghostfolio:not-used"
   },
   "args": {
-    "ghostfolio_version": "2.100.0"
+    "ghostfolio_version": "2.101.0"
   },
   "codenotary": {
     "signer": "colin@symr.io"
