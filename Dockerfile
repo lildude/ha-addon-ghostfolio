@@ -12,6 +12,7 @@ ENV \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     S6_SERVICES_GRACETIME=0
 
+USER root
 RUN apt-get update && apt-get install -y \
         curl \
         git \
@@ -38,6 +39,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY rootfs /
 RUN chmod a+x /etc/services.d/*/run /etc/services.d/*/finish
+USER node
 
 ENTRYPOINT ["/init"]
 
