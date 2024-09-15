@@ -1,4 +1,4 @@
-FROM ghostfolio/ghostfolio:2.103.0
+FROM ghostfolio/ghostfolio:2.107.1
 
 ARG BUILD_ARCH
 ARG BASHIO_VERSION=0.16.2
