@@ -35,7 +35,8 @@ RUN apt-get update && apt-get install -y \
     && curl -Ls "https://github.com/hassio-addons/bashio/archive/v${BASHIO_VERSION}.tar.gz" | tar xz --strip 1 -C /tmp/bashio \
     && mv /tmp/bashio/lib /usr/lib/bashio \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
-    && rm -rf /tmp/bashio
+    && rm -rf /tmp/bashio \
+    && npm install -g npm@latest
 
 COPY rootfs /
 RUN chmod a+x /etc/services.d/*/run /etc/services.d/*/finish
