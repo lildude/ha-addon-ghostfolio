@@ -35,7 +35,8 @@ jobs:
       - name: Get Ghostfolio release notes
         run: |
           touch CHANGELOG.txt
-          gh pr list --repo lildude/ha-addon-ghostfolio --state=merged --search="Update Ghostfolio" --limit=1 --json=body --jq '.[].body' | sed -n "/<\/summary>/,/<\/details>/p" | sed '1d;$d' > changelog.tmp
+          last_release_date=$(gh release list --repo lildude/ha-addon-ghostfolio --limit=1 --json=publishedAt)
+          gh pr list --repo lildude/ha-addon-ghostfolio --state=merged --search="Update Ghostfolio in:title closed:>$last_release_date" --limit=1 --json=body --jq '.[].body' | sed -n "/<\/summary>/,/<\/details>/p" | sed '1d;$d' > changelog.tmp
           if [ -s changelog.tmp ]; then
             echo "## Ghostfolio Release Notes" > CHANGELOG.txt
             cat changelog.tmp >> CHANGELOG.txt
