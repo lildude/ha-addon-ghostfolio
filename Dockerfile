@@ -24,31 +24,22 @@ RUN apt-get update && apt-get install -y \
     && S6_ARCH="${BUILD_ARCH}" \
     && if [ "${BUILD_ARCH}" = "amd64" ]; then S6_ARCH="x86_64"; \
     elif [ "${BUILD_ARCH}" = "armv7" ]; then S6_ARCH="arm"; fi \
-    && rm -rf /var/lib/apt/lists/* \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" | tar xpJ -C / \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" | tar xpJ -C / \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz" | tar Jxp -C /  \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz" | tar Jxp -C / \
-    && mkdir -p /etc/fix-attrs.d \
-    && mkdir -p /etc/services.d \
     && mkdir -p /tmp/bashio \
     && curl -Ls "https://github.com/hassio-addons/bashio/archive/v${BASHIO_VERSION}.tar.gz" | tar xz --strip 1 -C /tmp/bashio \
     && mv /tmp/bashio/lib /usr/lib/bashio \
+    && apt purge -y xz-utils \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
-    && rm -rf /tmp/bashio \
+    && rm -rf /var/lib/apt/lists/* /tmp/* \
     && npm install -g npm@latest
 
 COPY rootfs /
-RUN chmod a+x /etc/services.d/*/run /etc/services.d/*/finish
 USER node
 
 ENTRYPOINT ["/init"]
-
-LABEL \
-    org.opencontainers.image.title="Home Assistant Add-on: Ghostfolio" \
-    org.opencontainers.image.description="Privacy-first, open source dashboard for your personal finances." \
-    org.opencontainers.image.source="https://github.com/lildude/ha-addon-ghostfolio/" \
-    org.opencontainers.image.licenses="MIT"
 
 HEALTHCHECK \
     --interval=10s \
