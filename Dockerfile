@@ -15,7 +15,6 @@ ENV \
 
 USER root
 RUN apt-get update && apt-get install -y \
-        curl \
         jq \
         redis \
         xz-utils \
@@ -31,7 +30,7 @@ RUN apt-get update && apt-get install -y \
     && mkdir -p /tmp/bashio \
     && curl -Ls "https://github.com/hassio-addons/bashio/archive/v${BASHIO_VERSION}.tar.gz" | tar xz --strip 1 -C /tmp/bashio \
     && mv /tmp/bashio/lib /usr/lib/bashio \
-    && apt purge -y xz-utils curl \
+    && apt purge -y xz-utils \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
     && rm -rf /var/lib/apt/lists/* /tmp/* \
     && npm install -g npm@latest
