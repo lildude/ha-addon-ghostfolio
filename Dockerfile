@@ -1,4 +1,5 @@
-FROM ghostfolio/ghostfolio:2.120.0
+ARG BUILD_FROM
+FROM $BUILD_FROM
 
 ARG BUILD_ARCH
 ARG BASHIO_VERSION=0.16.2
@@ -15,7 +16,6 @@ ENV \
 USER root
 RUN apt-get update && apt-get install -y \
         curl \
-        git \
         jq \
         redis \
         xz-utils \
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y \
     && mkdir -p /tmp/bashio \
     && curl -Ls "https://github.com/hassio-addons/bashio/archive/v${BASHIO_VERSION}.tar.gz" | tar xz --strip 1 -C /tmp/bashio \
     && mv /tmp/bashio/lib /usr/lib/bashio \
-    && apt purge -y xz-utils \
+    && apt purge -y xz-utils curl \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
     && rm -rf /var/lib/apt/lists/* /tmp/* \
     && npm install -g npm@latest
