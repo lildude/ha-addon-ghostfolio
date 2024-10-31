@@ -7,6 +7,11 @@
   "containerEnv": {
     "WORKSPACE_DIRECTORY": "${containerWorkspaceFolder}"
   },
+  "features": {
+    // "ghcr.io/devcontainers/features/node:1": {}, /* Only used for renovate testing */
+    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {},
+    "ghcr.io/jungaretti/features/ripgrep:1": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
