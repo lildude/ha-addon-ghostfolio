@@ -1,11 +1,11 @@
 {
   "build_from": {
-    "aarch64": "ghostfolio/ghostfolio:2.139.1",
-    "amd64": "ghostfolio/ghostfolio:2.139.1",
-    "armv7": "ghostfolio/ghostfolio:2.139.1"
+    "aarch64": "ghostfolio/ghostfolio:2.140.0",
+    "amd64": "ghostfolio/ghostfolio:2.140.0",
+    "armv7": "ghostfolio/ghostfolio:2.140.0"
   },
   "args": {
-    "ghostfolio_version": "2.139.1"
+    "ghostfolio_version": "2.140.0"
   },
   "codenotary": {
     "signer": "colin@symr.io"
