@@ -36,7 +36,13 @@ POSTGRES_PORT=$(bashio::config 'database_port')
 POSTGRES_USER=$(bashio::config 'database_user')
 
 API_KEY_COINGECKO_DEMO=$(bashio::config 'api_key_coingecko_demo')
+if [ "${API_KEY_COINGECKO_DEMO}" = 'null' ]; then
+  API_KEY_COINGECKO_DEMO=""
+fi
 API_KEY_COINGECKO_PRO=$(bashio::config 'api_key_coingecko_pro')
+if [ "${API_KEY_COINGECKO_PRO}" = 'null' ]; then
+  API_KEY_COINGECKO_PRO=""
+fi
 REDIS_HOST=localhost
 REDIS_PORT=6379
 NODE_ENV=production
