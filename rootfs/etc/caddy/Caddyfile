@@ -1,0 +1,42 @@
+:8099 {
+	# Only allow access from Home Assistant supervisor
+	@denied not remote_ip 172.30.32.2
+	respond @denied 403
+
+	# Set up reverse proxy to Ghostfolio
+	reverse_proxy http://127.0.0.1:3333 {
+		# Headers for proxy
+		header_up Host {host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Real-IP {remote_host}
+		header_up Referer {header.Referer}
+		header_up Origin ""
+		header_up X-Ingress-Path {header.X-Ingress-Path}
+		
+		# Remove Accept-Encoding to allow response modification
+		header_up -Accept-Encoding
+	}
+
+	# Handle redirects
+	handle_response {
+		@redirect header Location /
+		header @redirect Location {header.X-Ingress-Path}/
+	}
+
+	# Text replacements for Ghostfolio paths
+	replace {
+		"base href=\"/" "base href=\"{header.X-Ingress-Path}/"
+		"\"/api" "\"{header.X-Ingress-Path}/api"
+		"`/api" "`{header.X-Ingress-Path}/api"
+		"/assets" "{header.X-Ingress-Path}/assets"
+		"../assets" "{header.X-Ingress-Path}/assets"
+		"localStorage.clear()" "localStorage.removeItem('auth-token')"
+		"sessionStorage.clear()" "sessionStorage.removeItem('auth-token')"
+	}
+
+	# Logging
+	log {
+		output file /tmp/access.log
+	}
+}

@@ -1,0 +1,5 @@
+#!/command/with-contenv bashio
+# -*- bash -*-
+# shellcheck shell=bash
+
+bashio::log.info "Caddy stopped"
