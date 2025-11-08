@@ -41,6 +41,5 @@
           "value": "str?"
       }]
   },
-  "codenotary": "colin@symr.io",
   "image": "ghcr.io/lildude/ha-addon-ghostfolio-{arch}"
 }
