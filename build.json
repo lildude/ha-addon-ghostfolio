@@ -1,10 +1,10 @@
 {
   "build_from": {
-    "aarch64": "ghostfolio/ghostfolio:2.223.0",
-    "amd64": "ghostfolio/ghostfolio:2.223.0"
+    "aarch64": "ghostfolio/ghostfolio:2.224.2",
+    "amd64": "ghostfolio/ghostfolio:2.224.2"
   },
   "args": {
-    "ghostfolio_version": "2.223.0"
+    "ghostfolio_version": "2.224.2"
   },
   "labels":{
     "maintainer": "Colin Seymour (https://github.com/lildude)",
