@@ -22,7 +22,7 @@ This addon allows you to run [Ghostfolio][ghostfolio] on your Home Assistant ser
 ## Requirements
 
 Ghostfolio needs a PostgreSQL database.
-I recommend using the [PostgreSQL add-on][alexbelgium-postgres] from @alexbelgium's repository if you aren't already using Postgres.
+I recommend using the [PostgreSQL 15][alexbelgium-postgres15] or [PostgreSQL 17][alexbelgium-postgres17] from @alexbelgium's repository if you aren't already using Postgres.
 
 ## Installation
 
@@ -42,7 +42,8 @@ The installation of this add-on is pretty straightforward and no different to in
 
 [addon]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Flildude%2Fha-addons
 [addons-repo]: https://github.com/lildude/ha-addons
-[alexbelgium-postgres]: https://github.com/alexbelgium/hassio-addons/tree/master/postgres
+[alexbelgium-postgres15]: https://github.com/alexbelgium/hassio-addons/tree/master/postgres_15
+[alexbelgium-postgres17]: https://github.com/alexbelgium/hassio-addons/tree/master/postgres_17
 [archs]: https://img.shields.io/badge/dynamic/json?color=green&label=Arch&query=%24.arch&url=https%3A%2F%2Fraw.githubusercontent.com%2Flildude%2Fha-addon-ghostfolio%2Fmain%2Fconfig.json
 [dark]: https://raw.githubusercontent.com/lildude/ha-addon-ghostfolio/main/imgs/screenshot-dark.png
 [docker]: https://hub.docker.com/r/ghostfolio/ghostfolio
