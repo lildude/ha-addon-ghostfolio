@@ -47,8 +47,8 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 NODE_ENV=production
 # Construct the DATABASE_URL with proper URI encoding
-encoded_user_pass=$(jq -rn --arg x "$POSTGRES_USER:$POSTGRES_PASS" '$x|@uri')
-DATABASE_URL="postgresql://$encoded_user_pass@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?connect_timeout=300&sslmode=prefer"
+encoded_pass=$(jq -rn --arg x "$POSTGRES_PASS" '$x|@uri')
+DATABASE_URL="postgresql://$POSTGRES_USER:$encoded_pass@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?connect_timeout=300&sslmode=prefer"
 TZ=UTC # Force timezone to prevent https://github.com/ghostfolio/ghostfolio/issues/2669 which is probably due to https://github.com/brianc/node-postgres/issues/2141
 
 export ACCESS_TOKEN_SALT JWT_SECRET_KEY POSTGRES_HOST POSTGRES_DB POSTGRES_PASS POSTGRES_PORT POSTGRES_USER \
