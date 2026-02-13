@@ -1,4 +1,7 @@
 on:
+  pull_request:
+    types:
+      - closed
   workflow_dispatch:
     inputs:
       semverIncrement:
@@ -11,6 +14,10 @@ name: Releaser
 jobs:
   release:
     name: Create Release
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       startsWith(github.event.pull_request.title, 'Update Ghostfolio to'))
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.semver.outputs.semver }}
@@ -31,7 +38,7 @@ jobs:
         uses: matt-FFFFFF/simple-semver@v0.1.1
         with:
           semver-input: ${{ env.latest_release }}
-          increment: ${{ github.event.inputs.semverIncrement }}
+          increment: ${{ github.event.inputs.semverIncrement || 'i' }}
       - name: Get Ghostfolio release notes
         run: |
           touch CHANGELOG.txt
