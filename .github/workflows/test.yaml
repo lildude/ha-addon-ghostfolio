@@ -23,26 +23,78 @@ on:
       - rootfs/**
 
 jobs:
-  build:
+  init:
+    name: Initialize build
     runs-on: ubuntu-latest
-    name: Build add-on
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Build matrix
+        id: matrix
+        run: |
+          architectures=$(jq -r '.arch[]' config.json)
+          matrix='{"include":[]}'
+          for arch in $architectures; do
+            case "${arch}" in
+              amd64) os="ubuntu-24.04" ;;
+              aarch64) os="ubuntu-24.04-arm" ;;
+              *) echo "::error::Unsupported architecture: ${arch}"; exit 1 ;;
+            esac
+            build_from=$(jq -r ".build_from.\"${arch}\"" build.json)
+            image="ghcr.io/${{ github.repository_owner }}/ha-addon-ghostfolio-${arch}"
+            matrix=$(jq -c \
+              --arg arch "$arch" \
+              --arg os "$os" \
+              --arg image "$image" \
+              --arg build_from "$build_from" \
+              '.include += [{arch: $arch, os: $os, image: $image, build_from: $build_from}]' <<< "${matrix}")
+          done
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.arch }} add-on
+    needs: init
+    runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        arch: ["amd64", "aarch64"]
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6.0.2
 
+      - name: Get build args and labels
+        id: build-info
+        run: |
+          {
+            echo "build_args<<EOF"
+            echo "BUILD_FROM=${{ matrix.build_from }}"
+            jq -r '.args // {} | to_entries[] | "\(.key)=\(.value)"' build.json
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "labels<<EOF"
+            jq -r '.labels // {} | to_entries[] | "\(.key)=\(.value)"' build.json
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build add-on
-        uses: home-assistant/builder@2026.03.2
+        uses: home-assistant/builder/actions/build-image@2026.03.2
         with:
-          args: |
-            --test \
-            --${{ matrix.arch }} \
-            --target /data/ \
-            --addon
+          arch: ${{ matrix.arch }}
+          image: ${{ matrix.image }}
+          image-tags: test
+          build-args: ${{ steps.build-info.outputs.build_args }}
+          labels: ${{ steps.build-info.outputs.labels }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          load: "true"
+          cosign: "false"
+          version: test
 
       - name: Image labels
         run: |
-          docker inspect ghcr.io/lildude/ha-addon-ghostfolio-${{ matrix.arch }} --format='{{json .Config.Labels}}' | jq
+          docker inspect ${{ matrix.image }}:test --format='{{json .Config.Labels}}' | jq
