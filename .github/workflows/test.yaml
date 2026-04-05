@@ -37,6 +37,7 @@ jobs:
       - name: Build matrix
         id: matrix
         run: |
+          image_template=$(jq -r '.image' config.json)
           architectures=$(jq -r '.arch[]' config.json)
           matrix='{"include":[]}'
           for arch in $architectures; do
@@ -46,7 +47,7 @@ jobs:
               *) echo "::error::Unsupported architecture: ${arch}"; exit 1 ;;
             esac
             build_from=$(jq -r ".build_from.\"${arch}\"" build.json)
-            image="ghcr.io/${{ github.repository_owner }}/ha-addon-ghostfolio-${arch}"
+            image="${image_template//\{arch\}/${arch}}"
             matrix=$(jq -c \
               --arg arch "$arch" \
               --arg os "$os" \
