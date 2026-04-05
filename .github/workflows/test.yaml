@@ -26,6 +26,8 @@ jobs:
   init:
     name: Initialize build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
@@ -58,6 +60,8 @@ jobs:
     name: Build ${{ matrix.arch }} add-on
     needs: init
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
