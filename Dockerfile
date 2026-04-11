@@ -31,8 +31,7 @@ RUN apt-get update && apt-get install -y \
     && mv /tmp/bashio/lib /usr/lib/bashio \
     && apt purge -y xz-utils \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
-    && rm -rf /var/lib/apt/lists/* /tmp/* \
-    && npm install -g npm@latest
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 COPY rootfs /
 USER node
