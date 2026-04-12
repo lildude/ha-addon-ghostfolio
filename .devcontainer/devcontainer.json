@@ -1,6 +1,8 @@
 {
   "name": "HA Addon: Ghostfolio",
-  "image": "ghcr.io/home-assistant/devcontainer:2-addons",
+  "image": "ghcr.io/home-assistant/devcontainer:4-apps",
+  "overrideCommand": false,
+  "remoteUser": "vscode",
   "appPort": ["7123:8123", "7357:4357"],
   "postStartCommand": "bash devcontainer_bootstrap",
   "runArgs": ["-e", "GIT_EDITOR=code --wait", "--privileged"],
@@ -8,7 +10,6 @@
     "WORKSPACE_DIRECTORY": "${containerWorkspaceFolder}"
   },
   "features": {
-    // "ghcr.io/devcontainers/features/node:1": {}, /* Only used for renovate testing */
     "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {},
     "ghcr.io/jungaretti/features/ripgrep:1": {}
   },
@@ -34,6 +35,7 @@
   },
   "mounts": [
     "type=volume,target=/var/lib/docker",
-    "type=volume,target=/mnt/supervisor"
+    "type=volume,target=/var/lib/containerd",
+    "type=volume,target=/mnt/supervisor",
   ]
 }
