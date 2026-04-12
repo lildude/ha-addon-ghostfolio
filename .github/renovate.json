@@ -12,10 +12,11 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": "^build.json$",
+      "fileMatch": ["^build.json$", "^Dockerfile$"],
       "matchStrings": [
         "\"ghostfolio/ghostfolio:(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
-        "\"ghostfolio_version\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+        "\"ghostfolio_version\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "BUILD_FROM=ghostfolio/ghostfolio:(?<currentValue>\\d+\\.\\d+\\.\\d+)"
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "ghostfolio/ghostfolio"
