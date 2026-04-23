@@ -1,4 +1,4 @@
-ARG BUILD_FROM=ghostfolio/ghostfolio:2.255.0
+ARG BUILD_FROM=ghostfolio/ghostfolio:3.0.0
 FROM $BUILD_FROM
 
 ARG BUILD_ARCH
