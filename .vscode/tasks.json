@@ -14,6 +14,17 @@
         "panel": "dedicated"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Setup HA for Ghostfolio",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/.devcontainer/setup-ha.sh",
+      "dependsOn": "Start Home Assistant",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
     }
   ]
 }
