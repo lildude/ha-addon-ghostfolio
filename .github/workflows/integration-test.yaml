@@ -32,4 +32,6 @@ jobs:
       - name: Run integration test in devcontainer
         uses: devcontainers/ci@v0.3
         with:
-          runCmd: bash .devcontainer/setup-ha.sh
+          runCmd: |
+            supervisor_run &
+            bash .devcontainer/setup-ha.sh
