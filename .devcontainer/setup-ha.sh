@@ -69,7 +69,7 @@ supervisor_api_jq_test() {
 
 wait_for_ha() {
   log "Waiting for Home Assistant to be ready..."
-  local max_attempts=120
+  local max_attempts=180
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
     if curl -sf "${HA_URL}/api/onboarding" > /dev/null 2>&1; then
