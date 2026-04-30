@@ -33,6 +33,6 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           runCmd: |
-            sudo mount -t securityfs securityfs /sys/kernel/security 2>/dev/null || sudo cp /bin/true /usr/sbin/apparmor_parser
+            sudo mount -t tmpfs none /sys/kernel/security
             supervisor_run &
             bash .devcontainer/setup-ha.sh
