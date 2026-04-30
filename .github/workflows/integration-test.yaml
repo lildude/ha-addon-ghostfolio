@@ -33,6 +33,7 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           runCmd: |
-            sudo mount -t tmpfs none /sys/kernel/security
+            printf '#!/bin/sh\nexit 0\n' | sudo tee /usr/sbin/apparmor_parser > /dev/null && sudo chmod +x /usr/sbin/apparmor_parser
+            sudo sed -i 's|docker run --rm --privileged|docker run --rm --privileged -v /usr/sbin/apparmor_parser:/usr/sbin/apparmor_parser:ro|' /usr/bin/supervisor_run
             supervisor_run &
             bash .devcontainer/setup-ha.sh
