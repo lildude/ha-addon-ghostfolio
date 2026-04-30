@@ -31,9 +31,17 @@ GHOSTFOLIO_SLUG="local_ghostfolio"
 
 # --- Helpers ---
 
-log()  { echo "==> $*"; }
-warn() { echo "WARNING: $*" >&2; }
-err()  { echo "ERROR: $*" >&2; exit 1; }
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+log()  { echo -e "${CYAN}==>${NC} ${BOLD}$*${NC}"; }
+warn() { echo -e "${YELLOW}WARNING:${NC} $*" >&2; }
+err()  { echo -e "${RED}ERROR:${NC} $*" >&2; exit 1; }
+ok()   { echo -e "${CYAN}==>${NC} ${GREEN}$*${NC}"; }
 
 # Run Supervisor API call via hassio_cli container
 # IMPORTANT: Use single quotes for outer sh -c argument so $SUPERVISOR_TOKEN
@@ -69,11 +77,11 @@ supervisor_api_jq_test() {
 
 wait_for_ha() {
   log "Waiting for Home Assistant to be ready..."
-  local max_attempts=180
+  local max_attempts=60
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
     if curl -sf "${HA_URL}/api/onboarding" > /dev/null 2>&1; then
-      log "Home Assistant is ready"
+      ok "Home Assistant is ready"
       return 0
     fi
     sleep 5
@@ -93,7 +101,7 @@ complete_onboarding() {
   user_done=$(echo "$onboarding" | jq -r '.[] | select(.step == "user") | .done')
 
   if [ "$user_done" = "true" ]; then
-    log "Onboarding already completed"
+    ok "Onboarding already completed"
     return 0
   fi
 
@@ -141,7 +149,7 @@ complete_onboarding() {
     -H "Content-Type: application/json" \
     -d "{\"client_id\":\"${CLIENT_ID}\",\"redirect_uri\":\"${HA_URL}/\"}" > /dev/null 2>&1 || true
 
-  log "Onboarding complete"
+  ok "Onboarding complete"
 }
 
 # --- Step 2: Add alexbelgium addon repository ---
@@ -150,7 +158,7 @@ add_addon_repo() {
   log "Checking addon repositories..."
 
   if supervisor_api_jq_test "/store/repositories" ".data[] | select(.source == \"${ALEXBELGIUM_REPO}\")"; then
-    log "Repository already added: ${ALEXBELGIUM_REPO}"
+    ok "Repository already added: ${ALEXBELGIUM_REPO}"
     return 0
   fi
 
@@ -164,7 +172,7 @@ add_addon_repo() {
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
     if supervisor_api_jq_test "/addons/${POSTGRES_SLUG}/info" '.data.name'; then
-      log "Store refreshed successfully"
+      ok "Store refreshed successfully"
       return 0
     fi
     sleep 5
@@ -185,7 +193,7 @@ install_postgres() {
   if [ -n "$version" ]; then
     local state
     state=$(supervisor_api_jq "/addons/${postgres_slug}/info" '.data.state')
-    log "PostgreSQL addon already installed (version: ${version}, state: ${state})"
+    ok "PostgreSQL addon already installed (version: ${version}, state: ${state})"
     return 0
   fi
 
@@ -199,7 +207,7 @@ install_postgres() {
   while [ "$attempt" -lt "$max_attempts" ]; do
     version=$(supervisor_api_jq "/addons/${postgres_slug}/info" '.data.version // empty')
     if [ -n "$version" ]; then
-      log "PostgreSQL addon installed (version: ${version})"
+      ok "PostgreSQL addon installed (version: ${version})"
       return 0
     fi
     sleep 5
@@ -228,7 +236,7 @@ configure_and_start_postgres() {
   state=$(supervisor_api_jq "/addons/${postgres_slug}/info" '.data.state')
 
   if [ "$state" = "started" ]; then
-    log "PostgreSQL addon already running"
+    ok "PostgreSQL addon already running"
     return 0
   fi
 
@@ -242,7 +250,7 @@ configure_and_start_postgres() {
   while [ "$attempt" -lt "$max_attempts" ]; do
     state=$(supervisor_api_jq "/addons/${postgres_slug}/info" '.data.state')
     if [ "$state" = "started" ]; then
-      log "PostgreSQL addon is running"
+      ok "PostgreSQL addon is running"
       # Give postgres time to initialize the database
       sleep 10
       return 0
@@ -263,7 +271,7 @@ install_ghostfolio() {
   if [ -n "$version" ]; then
     local state
     state=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.state')
-    log "Ghostfolio addon already installed (version: ${version}, state: ${state})"
+    ok "Ghostfolio addon already installed (version: ${version}, state: ${state})"
     return 0
   fi
 
@@ -272,12 +280,12 @@ install_ghostfolio() {
 
   # Wait for installation to complete
   log "Waiting for Ghostfolio installation..."
-  local max_attempts=120
+  local max_attempts=60
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
     version=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.version // empty')
     if [ -n "$version" ]; then
-      log "Ghostfolio addon installed (version: ${version})"
+      ok "Ghostfolio addon installed (version: ${version})"
       return 0
     fi
     sleep 5
@@ -311,7 +319,7 @@ configure_and_start_ghostfolio() {
   state=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.state')
 
   if [ "$state" = "started" ]; then
-    log "Ghostfolio addon already running"
+    ok "Ghostfolio addon already running"
     wait_for_ghostfolio_ready
     return 0
   fi
@@ -336,7 +344,7 @@ configure_and_start_ghostfolio() {
   fi
 
   wait_for_ghostfolio_ready
-  log "Ghostfolio addon started and ready"
+  ok "Ghostfolio addon started and ready"
 }
 
 wait_for_ghostfolio_ready() {
@@ -347,7 +355,7 @@ wait_for_ghostfolio_ready() {
     local logs
     logs=$(supervisor_api GET "/addons/${GHOSTFOLIO_SLUG}/logs" 2>/dev/null || true)
     if echo "$logs" | grep -q "Listening at http://0.0.0.0:3333"; then
-      log "Ghostfolio is ready"
+      ok "Ghostfolio is ready"
       return 0
     fi
     sleep 5
@@ -372,7 +380,7 @@ main() {
   configure_and_start_ghostfolio "$POSTGRES_SLUG"
 
   echo ""
-  log "Setup complete!"
+  ok "Setup complete!"
   log "  Home Assistant: ${HA_URL} (user: ${ADMIN_USER}, pass: ${ADMIN_PASS})"
   log "  PostgreSQL: ${POSTGRES_SLUG} (user: ${POSTGRES_USER}, db: ${POSTGRES_DB})"
   log "  Ghostfolio: accessible via HA ingress or port 7123"
