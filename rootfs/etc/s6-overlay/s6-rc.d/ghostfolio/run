@@ -65,7 +65,7 @@ done
 bashio::log.info "Starting Ghostfolio"
 cd /ghostfolio/apps/api
 if bashio::config.true 'silent'; then
-  yarn start:production >/dev/null
+  exec /ghostfolio/entrypoint.sh >/dev/null
 else
-  yarn start:production
+  exec /ghostfolio/entrypoint.sh
 fi

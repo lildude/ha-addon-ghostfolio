@@ -1,5 +1,9 @@
+# Stage 1: Copy application files from the upstream ghostfolio image
 ARG BUILD_FROM=ghostfolio/ghostfolio:3.11.0
-FROM $BUILD_FROM
+FROM ${BUILD_FROM} AS ghostfolio-source
+
+# Stage 2: Final image built on a clean node:22 base to minimise image size
+FROM node:22-bookworm-slim
 
 ARG BUILD_ARCH
 ARG BASHIO_VERSION=0.16.2
@@ -14,12 +18,14 @@ ENV \
     S6_SERVICES_GRACETIME=0
 
 USER root
-RUN apt-get update && apt-get install -y \
-        jq \
-        redis \
-        xz-utils \
-        nginx \
+RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
+        curl \
+        jq \
+        nginx \
+        openssl \
+        redis-server \
+        xz-utils \
     && S6_ARCH="${BUILD_ARCH}" \
     && if [ "${BUILD_ARCH}" = "amd64" ]; then S6_ARCH="x86_64"; fi \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" | tar xpJ -C / \
@@ -33,6 +39,7 @@ RUN apt-get update && apt-get install -y \
     && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
+COPY --from=ghostfolio-source --chown=node:node /ghostfolio /ghostfolio
 COPY rootfs /
 USER node
 
