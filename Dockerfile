@@ -4,15 +4,6 @@ ARG BUILD_ARCH
 ARG BASHIO_VERSION=0.16.2
 ARG S6_OVERLAY_VERSION=3.1.6.2
 
-LABEL \
-    maintainer="Colin Seymour (https://github.com/lildude)" \
-    org.opencontainers.image.authors="Colin Seymour (https://github.com/lildude)" \
-    org.opencontainers.image.description="Privacy-first, open source dashboard for your personal finances." \
-    org.opencontainers.image.documentation="https://github.com/lildude/ha-addon-ghostfolio/blob/main/DOCS.md" \
-    org.opencontainers.image.licenses="MIT" \
-    org.opencontainers.image.source="https://github.com/lildude/ha-addon-ghostfolio/" \
-    org.opencontainers.image.title="Home Assistant Add-on: Ghostolio"
-
 ENV \
     DEBIAN_FRONTEND="noninteractive" \
     LANG="C.UTF-8" \
@@ -43,6 +34,15 @@ RUN apt-get update && apt-get install -y \
 
 COPY rootfs /
 USER node
+
+LABEL \
+    maintainer="Colin Seymour (https://github.com/lildude)" \
+    org.opencontainers.image.authors="Colin Seymour (https://github.com/lildude)" \
+    org.opencontainers.image.description="Privacy-first, open source dashboard for your personal finances." \
+    org.opencontainers.image.documentation="https://github.com/lildude/ha-addon-ghostfolio/blob/main/DOCS.md" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.source="https://github.com/lildude/ha-addon-ghostfolio/" \
+    org.opencontainers.image.title="Home Assistant Add-on: Ghostolio"
 
 ENTRYPOINT ["/init"]
 
