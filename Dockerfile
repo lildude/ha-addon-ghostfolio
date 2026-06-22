@@ -1,5 +1,4 @@
-ARG BUILD_FROM=ghostfolio/ghostfolio:3.13.0
-FROM $BUILD_FROM
+FROM ghostfolio/ghostfolio:3.13.0
 
 ARG BUILD_ARCH
 ARG BASHIO_VERSION=0.16.2
@@ -14,12 +13,12 @@ ENV \
     S6_SERVICES_GRACETIME=0
 
 USER root
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
         jq \
+        nginx \
         redis \
         xz-utils \
-        nginx \
-        ca-certificates \
     && S6_ARCH="${BUILD_ARCH}" \
     && if [ "${BUILD_ARCH}" = "amd64" ]; then S6_ARCH="x86_64"; fi \
     && curl -Ls "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" | tar xpJ -C / \
@@ -35,6 +34,15 @@ RUN apt-get update && apt-get install -y \
 
 COPY rootfs /
 USER node
+
+LABEL \
+    maintainer="Colin Seymour (https://github.com/lildude)" \
+    org.opencontainers.image.authors="Colin Seymour (https://github.com/lildude)" \
+    org.opencontainers.image.description="Privacy-first, open source dashboard for your personal finances." \
+    org.opencontainers.image.documentation="https://github.com/lildude/ha-addon-ghostfolio/blob/main/DOCS.md" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.source="https://github.com/lildude/ha-addon-ghostfolio/" \
+    org.opencontainers.image.title="Home Assistant Add-on: Ghostfolio"
 
 ENTRYPOINT ["/init"]
 

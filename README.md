@@ -47,7 +47,7 @@ The installation of this add-on is pretty straightforward and no different to in
 [archs]: https://img.shields.io/badge/dynamic/json?color=green&label=Arch&query=%24.arch&url=https%3A%2F%2Fraw.githubusercontent.com%2Flildude%2Fha-addon-ghostfolio%2Fmain%2Fconfig.json
 [dark]: https://raw.githubusercontent.com/lildude/ha-addon-ghostfolio/main/imgs/screenshot-dark.png
 [docker]: https://hub.docker.com/r/ghostfolio/ghostfolio
-[ghostfolio-version]: https://img.shields.io/badge/dynamic/json?label=Ghostfolio%20Version&url=https%3A%2F%2Fraw.githubusercontent.com%2Flildude%2Fha-addon-ghostfolio%2Fmain%2Fbuild.json&query=%24.args.ghostfolio_version
+[ghostfolio-version]: https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Flildude%2Fha-addon-ghostfolio%2Fblob%2Fmain%2FDockerfile&search=ghostfolio%2Fghostfolio%3A(%3F%3Ccurrent_ver%3E%5Cd%2B%5C.%5Cd%2B%5C.%5Cd%2B)&replace=%241&label=Ghostfolio%20Version
 [ghostfolio]: https://ghostfol.io
 [ingres-badge]: https://img.shields.io/badge/dynamic/json?label=Ingress&query=%24.ingress&url=https%3A%2F%2Fraw.githubusercontent.com%2Flildude%2Fha-addon-ghostfolio%2Fmain%2Fconfig.json
 [light]: https://raw.githubusercontent.com/lildude/ha-addon-ghostfolio/main/imgs/screenshot-light.png
