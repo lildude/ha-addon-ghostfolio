@@ -5,9 +5,6 @@ on:
     branches:
       - main
     paths:
-      - build.yaml
-      - config.yaml
-      - build.json
       - config.json
       - Dockerfile
       - rootfs/**
@@ -15,9 +12,6 @@ on:
     branches:
       - main
     paths:
-      - build.yaml
-      - config.yaml
-      - build.json
       - config.json
       - Dockerfile
       - rootfs/**
@@ -46,14 +40,12 @@ jobs:
               aarch64) os="ubuntu-24.04-arm" ;;
               *) echo "::error::Unsupported architecture: ${arch}"; exit 1 ;;
             esac
-            build_from=$(jq -r ".build_from.\"${arch}\"" build.json)
             image="${image_template//\{arch\}/${arch}}"
             matrix=$(jq -c \
               --arg arch "$arch" \
               --arg os "$os" \
               --arg image "$image" \
-              --arg build_from "$build_from" \
-              '.include += [{arch: $arch, os: $os, image: $image, build_from: $build_from}]' <<< "${matrix}")
+              '.include += [{arch: $arch, os: $os, image: $image}]' <<< "${matrix}")
           done
           echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
@@ -71,30 +63,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6.0.2
 
-      - name: Get build args and labels
-        id: build-info
-        run: |
-          {
-            echo "build_args<<EOF"
-            echo "BUILD_FROM=${{ matrix.build_from }}"
-            jq -r '.args // {} | to_entries[] | "\(.key)=\(.value)"' build.json
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-          {
-            echo "labels<<EOF"
-            jq -r '.labels // {} | to_entries[] | "\(.key)=\(.value)"' build.json
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Build add-on
         uses: home-assistant/builder/actions/build-image@2026.03.2
         with:
           arch: ${{ matrix.arch }}
           image: ${{ matrix.image }}
           image-tags: test
-          build-args: ${{ steps.build-info.outputs.build_args }}
-          labels: ${{ steps.build-info.outputs.labels }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
           load: "true"
           cosign: "false"
