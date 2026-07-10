@@ -79,5 +79,6 @@ jobs:
             latest
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
           push: "true"
+          cache-gha: "false"
           cosign: "false"
           version: ${{ needs.init.outputs.version }}
