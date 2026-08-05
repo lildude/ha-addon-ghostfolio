@@ -142,7 +142,7 @@ complete_onboarding() {
 
   log "Creating admin user '${ADMIN_USER}'..."
   local auth_response
-  auth_response=$(curl -sf -X POST "${HA_URL}/api/onboarding/users" \
+  auth_response=$(curl -sfL -X POST "${HA_URL}/api/onboarding/users" \
     -H "Content-Type: application/json" \
     -d "{\"client_id\":\"${CLIENT_ID}\",\"name\":\"Admin\",\"username\":\"${ADMIN_USER}\",\"password\":\"${ADMIN_PASS}\",\"language\":\"en\"}")
 
@@ -155,7 +155,7 @@ complete_onboarding() {
 
   # Exchange auth code for access token
   local token_response
-  token_response=$(curl -sf -X POST "${HA_URL}/auth/token" \
+  token_response=$(curl -sfL -X POST "${HA_URL}/auth/token" \
     --data-urlencode "grant_type=authorization_code" \
     --data-urlencode "code=${auth_code}" \
     --data-urlencode "client_id=${CLIENT_ID}")
@@ -169,17 +169,17 @@ complete_onboarding() {
 
   # Complete remaining onboarding steps
   log "Completing onboarding steps..."
-  curl -sf -X POST "${HA_URL}/api/onboarding/core_config" \
+  curl -sfL -X POST "${HA_URL}/api/onboarding/core_config" \
     -H "Authorization: Bearer ${access_token}" \
     -H "Content-Type: application/json" \
     -d "{}" > /dev/null 2>&1 || true
 
-  curl -sf -X POST "${HA_URL}/api/onboarding/analytics" \
+  curl -sfL -X POST "${HA_URL}/api/onboarding/analytics" \
     -H "Authorization: Bearer ${access_token}" \
     -H "Content-Type: application/json" \
     -d "{}" > /dev/null 2>&1 || true
 
-  curl -sf -X POST "${HA_URL}/api/onboarding/integration" \
+  curl -sfL -X POST "${HA_URL}/api/onboarding/integration" \
     -H "Authorization: Bearer ${access_token}" \
     -H "Content-Type: application/json" \
     -d "{\"client_id\":\"${CLIENT_ID}\",\"redirect_uri\":\"${HA_URL}/\"}" > /dev/null 2>&1 || true

@@ -39,8 +39,8 @@ jobs:
               supervisor_run > /tmp/supervisor.log 2>&1 &
             fi
             if ! bash .devcontainer/setup-ha.sh; then
-              echo "::group::Supervisor log (last 300 lines)"
-              tail -n 300 /tmp/supervisor.log
+              echo "::group::Supervisor log (last 300 lines, image pull progress omitted)"
+              grep -v -E "docker_image_pull_update|pull_progress" /tmp/supervisor.log | tail -n 300
               echo "::endgroup::"
               exit 1
             fi
