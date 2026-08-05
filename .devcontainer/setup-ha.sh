@@ -90,19 +90,39 @@ supervisor_api_jq_test() {
 
 # --- Step 0: Wait for HA to be ready ---
 
+# Best-effort Home Assistant Core state from the Supervisor, for diagnostics
+ha_core_state() {
+  local info
+  info=$(supervisor_api GET "/core/info" 2>/dev/null) || true
+  if [ -n "$info" ] && jq empty <<< "$info" 2>/dev/null; then
+    jq -r '.data.state // "unknown"' <<< "$info"
+  else
+    echo "unavailable"
+  fi
+}
+
+# HA answers on port 8123 long before the API is usable (the Supervisor serves a
+# landing page while Core starts), so readiness means "returns parseable JSON".
 wait_for_ha() {
   log "Waiting for Home Assistant to be ready..."
-  local max_attempts=60
+  local max_attempts=120
   local attempt=0
+  local raw status body=""
   while [ "$attempt" -lt "$max_attempts" ]; do
-    if curl -sf "${HA_URL}/api/onboarding" 2>/dev/null | jq empty 2>/dev/null; then
+    raw=$(curl -sL -w $'\n%{http_code}' "${HA_URL}/api/onboarding" 2>/dev/null || true)
+    status=${raw##*$'\n'}
+    body=${raw%$'\n'*}
+    if [ -n "$body" ] && jq empty <<< "$body" 2>/dev/null; then
       ok "Home Assistant is ready"
       return 0
+    fi
+    if [ $((attempt % 6)) -eq 0 ]; then
+      log "  attempt ${attempt}/${max_attempts}: core=$(ha_core_state) http=${status:-none} body=${body:0:120}"
     fi
     sleep 5
     attempt=$((attempt + 1))
   done
-  err "Home Assistant did not become ready in time"
+  err "Home Assistant did not become ready in time (core=$(ha_core_state) http=${status:-none} body=${body:0:200})"
 }
 
 # --- Step 1: Complete onboarding ---
@@ -110,7 +130,7 @@ wait_for_ha() {
 complete_onboarding() {
   log "Checking onboarding status..."
   local onboarding
-  onboarding=$(curl -sf "${HA_URL}/api/onboarding")
+  onboarding=$(curl -sfL "${HA_URL}/api/onboarding")
 
   local user_done
   user_done=$(jq_or_die "$onboarding" '.[] | select(.step == "user") | .done' "Onboarding status")

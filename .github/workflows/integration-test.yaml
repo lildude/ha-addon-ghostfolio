@@ -34,8 +34,13 @@ jobs:
             printf '#!/bin/sh\nexit 0\n' | sudo tee /usr/sbin/apparmor_parser > /dev/null && sudo chmod +x /usr/sbin/apparmor_parser
             sudo sed -i 's|docker run --rm --privileged|docker run --rm --privileged -v /usr/sbin/apparmor_parser:/usr/sbin/apparmor_parser:ro|' /usr/bin/supervisor_run
             if [ -n "${DEBUG:-}" ]; then
-              supervisor_run &
+              supervisor_run 2>&1 | tee /tmp/supervisor.log &
             else
-              supervisor_run > /dev/null 2>&1 &
+              supervisor_run > /tmp/supervisor.log 2>&1 &
             fi
-            bash .devcontainer/setup-ha.sh
+            if ! bash .devcontainer/setup-ha.sh; then
+              echo "::group::Supervisor log (last 300 lines)"
+              tail -n 300 /tmp/supervisor.log
+              echo "::endgroup::"
+              exit 1
+            fi
