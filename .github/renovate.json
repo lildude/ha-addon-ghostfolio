@@ -9,7 +9,7 @@
   "prBodyTemplate": "{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",
   "semanticCommits": "disabled",
   "commitMessageTopic": "{{#if (containsString depName 'ghostfolio')}}Ghostfolio{{else}}{{depName}}{{/if}}",
-  "enabledManagers": ["custom.regex", "github-actions"],
+  "enabledManagers": ["custom.regex", "github-actions", "devcontainer"],
   "customManagers": [
     {
       "customType": "regex",

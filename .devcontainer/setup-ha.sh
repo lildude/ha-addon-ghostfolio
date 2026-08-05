@@ -13,11 +13,16 @@
 
 set -euo pipefail
 
-HA_URL="http://localhost:8123"
+HA_HOST="localhost"
+# Core binds port 80 under the Supervisor from 2026.8 onwards, and 8123 before
+# that, so wait_for_ha resolves the port at runtime rather than assuming one.
+HA_PORTS=(80 8123)
+HA_URL=""
+CLIENT_ID=""
+
 ALEXBELGIUM_REPO="https://github.com/alexbelgium/hassio-addons"
 ADMIN_USER="admin"
 ADMIN_PASS="pass"
-CLIENT_ID="${HA_URL}/"
 
 POSTGRES_PASSWORD="homeassistant"
 POSTGRES_USER="postgres"
@@ -101,28 +106,53 @@ ha_core_state() {
   fi
 }
 
-# HA answers on port 8123 long before the API is usable (the Supervisor serves a
-# landing page while Core starts), so readiness means "returns parseable JSON".
+# HA answers on its HTTP port long before the API is usable, and from 2026.8 the
+# port itself moved from 8123 to 80 under the Supervisor. Older releases still use
+# 8123, and during onboarding new releases answer on both - but 8123 only serves a
+# redirect that Core tears down once onboarding completes. So port 80 is tried
+# first, redirects are deliberately not followed, and a port only counts as ready
+# when it serves the onboarding payload itself rather than merely valid JSON.
+HA_PROBE=""
+
+ha_probe() {
+  local port="$1" raw status body
+  raw=$(curl -s --max-time 5 -w $'\n%{http_code}' "http://${HA_HOST}:${port}/api/onboarding" 2>/dev/null || true)
+  status=${raw##*$'\n'}
+  body=${raw%$'\n'*}
+  HA_PROBE="${HA_PROBE:+${HA_PROBE} }port=${port} http=${status:-none} body=${body:0:80}"
+  jq -e 'type == "array" and (.[0] | has("step"))' <<< "$body" > /dev/null 2>&1
+}
+
+# Sets HA_URL and CLIENT_ID on success. Must not run in a subshell.
+ha_resolve_url() {
+  local port
+  HA_PROBE=""
+  for port in "${HA_PORTS[@]}"; do
+    if ha_probe "$port"; then
+      HA_URL="http://${HA_HOST}:${port}"
+      CLIENT_ID="${HA_URL}/"
+      return 0
+    fi
+  done
+  return 1
+}
+
 wait_for_ha() {
   log "Waiting for Home Assistant to be ready..."
   local max_attempts=120
   local attempt=0
-  local raw status body=""
   while [ "$attempt" -lt "$max_attempts" ]; do
-    raw=$(curl -sL -w $'\n%{http_code}' "${HA_URL}/api/onboarding" 2>/dev/null || true)
-    status=${raw##*$'\n'}
-    body=${raw%$'\n'*}
-    if [ -n "$body" ] && jq empty <<< "$body" 2>/dev/null; then
-      ok "Home Assistant is ready"
+    if ha_resolve_url; then
+      ok "Home Assistant is ready at ${HA_URL}"
       return 0
     fi
     if [ $((attempt % 6)) -eq 0 ]; then
-      log "  attempt ${attempt}/${max_attempts}: core=$(ha_core_state) http=${status:-none} body=${body:0:120}"
+      log "  attempt ${attempt}/${max_attempts}: core=$(ha_core_state) ${HA_PROBE}"
     fi
     sleep 5
     attempt=$((attempt + 1))
   done
-  err "Home Assistant did not become ready in time (core=$(ha_core_state) http=${status:-none} body=${body:0:200})"
+  err "Home Assistant did not become ready in time (core=$(ha_core_state) ${HA_PROBE})"
 }
 
 # --- Step 1: Complete onboarding ---
@@ -416,9 +446,16 @@ main() {
 
   echo ""
   ok "Setup complete!"
+  local host_port
+  # Mirrors the appPort list in devcontainer.json.
+  case "${HA_URL##*:}" in
+    80) host_port=7180 ;;
+    *) host_port=7123 ;;
+  esac
   log "  Home Assistant: ${HA_URL} (user: ${ADMIN_USER}, pass: ${ADMIN_PASS})"
+  log "    from the host: http://localhost:${host_port}"
   log "  PostgreSQL: ${POSTGRES_SLUG} (user: ${POSTGRES_USER}, db: ${POSTGRES_DB})"
-  log "  Ghostfolio: accessible via HA ingress or port 7123"
+  log "  Ghostfolio: accessible via Home Assistant ingress"
 }
 
 main "$@"
