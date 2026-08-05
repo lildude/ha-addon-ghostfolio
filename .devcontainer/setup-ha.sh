@@ -15,8 +15,7 @@ set -euo pipefail
 
 HA_HOST="localhost"
 # Core binds port 80 under the Supervisor from 2026.8 onwards, and 8123 before
-# that, so the port is resolved at runtime rather than assumed. Both are resolved
-# by wait_for_ha.
+# that, so wait_for_ha resolves the port at runtime rather than assuming one.
 HA_PORTS=(80 8123)
 HA_URL=""
 CLIENT_ID=""
