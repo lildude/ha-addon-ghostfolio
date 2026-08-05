@@ -43,6 +43,15 @@ warn() { echo -e "${YELLOW}WARNING:${NC} $*" >&2; }
 err()  { echo -e "${RED}ERROR:${NC} $*" >&2; exit 1; }
 ok()   { echo -e "${CYAN}==>${NC} ${GREEN}$*${NC}"; }
 
+# Parse JSON, aborting with the offending body instead of a bare jq parse error
+jq_or_die() {
+  local json="$1" filter="$2" context="$3"
+  if [ -z "$json" ] || ! jq empty <<< "$json" 2>/dev/null; then
+    err "${context}: expected JSON, got: ${json}"
+  fi
+  jq -r "$filter" <<< "$json"
+}
+
 # Run Supervisor API call via hassio_cli container
 # IMPORTANT: Use single quotes for outer sh -c argument so $SUPERVISOR_TOKEN
 # is expanded by the inner shell (where the env var exists), not the outer bash.
@@ -58,12 +67,18 @@ supervisor_api_with_body() {
     'curl -s -X '"${method}"' -H "Authorization: Bearer $SUPERVISOR_TOKEN" -H "Content-Type: application/json" -d "$BODY" http://supervisor'"${endpoint}"
 }
 
-# Query a specific jq field from a Supervisor API response
-# Runs curl and jq inside hassio_cli to avoid docker exec stdout pipe issues
+# Query a specific jq field from a Supervisor API response.
+# Supervisor reports HTTP errors as plain text (e.g. "404: Not Found"), which is
+# not JSON, so surface those and return nothing to let callers keep polling.
 supervisor_api_jq() {
   local endpoint="$1" jq_filter="$2"
-  docker exec -e "JQ_FILTER=${jq_filter}" hassio_cli sh -c \
-    'curl -s -H "Authorization: Bearer $SUPERVISOR_TOKEN" http://supervisor'"${endpoint}"' | jq -r "$JQ_FILTER"'
+  local response
+  response=$(supervisor_api GET "${endpoint}")
+  if [ -z "$response" ] || ! jq empty <<< "$response" 2>/dev/null; then
+    warn "Supervisor API ${endpoint} returned non-JSON: ${response}"
+    return 0
+  fi
+  jq -r "$jq_filter" <<< "$response"
 }
 
 # Check if a jq expression matches (returns 0 if match found, 1 otherwise)
@@ -75,19 +90,39 @@ supervisor_api_jq_test() {
 
 # --- Step 0: Wait for HA to be ready ---
 
+# Best-effort Home Assistant Core state from the Supervisor, for diagnostics
+ha_core_state() {
+  local info
+  info=$(supervisor_api GET "/core/info" 2>/dev/null) || true
+  if [ -n "$info" ] && jq empty <<< "$info" 2>/dev/null; then
+    jq -r '.data.state // "unknown"' <<< "$info"
+  else
+    echo "unavailable"
+  fi
+}
+
+# HA answers on port 8123 long before the API is usable (the Supervisor serves a
+# landing page while Core starts), so readiness means "returns parseable JSON".
 wait_for_ha() {
   log "Waiting for Home Assistant to be ready..."
-  local max_attempts=60
+  local max_attempts=120
   local attempt=0
+  local raw status body=""
   while [ "$attempt" -lt "$max_attempts" ]; do
-    if curl -sf "${HA_URL}/api/onboarding" > /dev/null 2>&1; then
+    raw=$(curl -sL -w $'\n%{http_code}' "${HA_URL}/api/onboarding" 2>/dev/null || true)
+    status=${raw##*$'\n'}
+    body=${raw%$'\n'*}
+    if [ -n "$body" ] && jq empty <<< "$body" 2>/dev/null; then
       ok "Home Assistant is ready"
       return 0
+    fi
+    if [ $((attempt % 6)) -eq 0 ]; then
+      log "  attempt ${attempt}/${max_attempts}: core=$(ha_core_state) http=${status:-none} body=${body:0:120}"
     fi
     sleep 5
     attempt=$((attempt + 1))
   done
-  err "Home Assistant did not become ready in time"
+  err "Home Assistant did not become ready in time (core=$(ha_core_state) http=${status:-none} body=${body:0:200})"
 }
 
 # --- Step 1: Complete onboarding ---
@@ -95,10 +130,10 @@ wait_for_ha() {
 complete_onboarding() {
   log "Checking onboarding status..."
   local onboarding
-  onboarding=$(curl -sf "${HA_URL}/api/onboarding")
+  onboarding=$(curl -sfL "${HA_URL}/api/onboarding")
 
   local user_done
-  user_done=$(echo "$onboarding" | jq -r '.[] | select(.step == "user") | .done')
+  user_done=$(jq_or_die "$onboarding" '.[] | select(.step == "user") | .done' "Onboarding status")
 
   if [ "$user_done" = "true" ]; then
     ok "Onboarding already completed"
@@ -107,12 +142,12 @@ complete_onboarding() {
 
   log "Creating admin user '${ADMIN_USER}'..."
   local auth_response
-  auth_response=$(curl -sf -X POST "${HA_URL}/api/onboarding/users" \
+  auth_response=$(curl -sfL -X POST "${HA_URL}/api/onboarding/users" \
     -H "Content-Type: application/json" \
     -d "{\"client_id\":\"${CLIENT_ID}\",\"name\":\"Admin\",\"username\":\"${ADMIN_USER}\",\"password\":\"${ADMIN_PASS}\",\"language\":\"en\"}")
 
   local auth_code
-  auth_code=$(echo "$auth_response" | jq -r '.auth_code')
+  auth_code=$(jq_or_die "$auth_response" '.auth_code' "Create admin user")
 
   if [ -z "$auth_code" ] || [ "$auth_code" = "null" ]; then
     err "Failed to create user: ${auth_response}"
@@ -120,13 +155,13 @@ complete_onboarding() {
 
   # Exchange auth code for access token
   local token_response
-  token_response=$(curl -sf -X POST "${HA_URL}/auth/token" \
+  token_response=$(curl -sfL -X POST "${HA_URL}/auth/token" \
     --data-urlencode "grant_type=authorization_code" \
     --data-urlencode "code=${auth_code}" \
     --data-urlencode "client_id=${CLIENT_ID}")
 
   local access_token
-  access_token=$(echo "$token_response" | jq -r '.access_token')
+  access_token=$(jq_or_die "$token_response" '.access_token' "Token exchange")
 
   if [ -z "$access_token" ] || [ "$access_token" = "null" ]; then
     err "Failed to get access token: ${token_response}"
@@ -134,17 +169,17 @@ complete_onboarding() {
 
   # Complete remaining onboarding steps
   log "Completing onboarding steps..."
-  curl -sf -X POST "${HA_URL}/api/onboarding/core_config" \
+  curl -sfL -X POST "${HA_URL}/api/onboarding/core_config" \
     -H "Authorization: Bearer ${access_token}" \
     -H "Content-Type: application/json" \
     -d "{}" > /dev/null 2>&1 || true
 
-  curl -sf -X POST "${HA_URL}/api/onboarding/analytics" \
+  curl -sfL -X POST "${HA_URL}/api/onboarding/analytics" \
     -H "Authorization: Bearer ${access_token}" \
     -H "Content-Type: application/json" \
     -d "{}" > /dev/null 2>&1 || true
 
-  curl -sf -X POST "${HA_URL}/api/onboarding/integration" \
+  curl -sfL -X POST "${HA_URL}/api/onboarding/integration" \
     -H "Authorization: Bearer ${access_token}" \
     -H "Content-Type: application/json" \
     -d "{\"client_id\":\"${CLIENT_ID}\",\"redirect_uri\":\"${HA_URL}/\"}" > /dev/null 2>&1 || true
