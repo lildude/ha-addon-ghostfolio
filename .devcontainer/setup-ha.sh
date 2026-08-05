@@ -43,6 +43,15 @@ warn() { echo -e "${YELLOW}WARNING:${NC} $*" >&2; }
 err()  { echo -e "${RED}ERROR:${NC} $*" >&2; exit 1; }
 ok()   { echo -e "${CYAN}==>${NC} ${GREEN}$*${NC}"; }
 
+# Parse JSON, aborting with the offending body instead of a bare jq parse error
+jq_or_die() {
+  local json="$1" filter="$2" context="$3"
+  if [ -z "$json" ] || ! jq empty <<< "$json" 2>/dev/null; then
+    err "${context}: expected JSON, got: ${json}"
+  fi
+  jq -r "$filter" <<< "$json"
+}
+
 # Run Supervisor API call via hassio_cli container
 # IMPORTANT: Use single quotes for outer sh -c argument so $SUPERVISOR_TOKEN
 # is expanded by the inner shell (where the env var exists), not the outer bash.
@@ -58,12 +67,18 @@ supervisor_api_with_body() {
     'curl -s -X '"${method}"' -H "Authorization: Bearer $SUPERVISOR_TOKEN" -H "Content-Type: application/json" -d "$BODY" http://supervisor'"${endpoint}"
 }
 
-# Query a specific jq field from a Supervisor API response
-# Runs curl and jq inside hassio_cli to avoid docker exec stdout pipe issues
+# Query a specific jq field from a Supervisor API response.
+# Supervisor reports HTTP errors as plain text (e.g. "404: Not Found"), which is
+# not JSON, so surface those and return nothing to let callers keep polling.
 supervisor_api_jq() {
   local endpoint="$1" jq_filter="$2"
-  docker exec -e "JQ_FILTER=${jq_filter}" hassio_cli sh -c \
-    'curl -s -H "Authorization: Bearer $SUPERVISOR_TOKEN" http://supervisor'"${endpoint}"' | jq -r "$JQ_FILTER"'
+  local response
+  response=$(supervisor_api GET "${endpoint}")
+  if [ -z "$response" ] || ! jq empty <<< "$response" 2>/dev/null; then
+    warn "Supervisor API ${endpoint} returned non-JSON: ${response}"
+    return 0
+  fi
+  jq -r "$jq_filter" <<< "$response"
 }
 
 # Check if a jq expression matches (returns 0 if match found, 1 otherwise)
@@ -80,7 +95,7 @@ wait_for_ha() {
   local max_attempts=60
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
-    if curl -sf "${HA_URL}/api/onboarding" > /dev/null 2>&1; then
+    if curl -sf "${HA_URL}/api/onboarding" 2>/dev/null | jq empty 2>/dev/null; then
       ok "Home Assistant is ready"
       return 0
     fi
@@ -98,7 +113,7 @@ complete_onboarding() {
   onboarding=$(curl -sf "${HA_URL}/api/onboarding")
 
   local user_done
-  user_done=$(echo "$onboarding" | jq -r '.[] | select(.step == "user") | .done')
+  user_done=$(jq_or_die "$onboarding" '.[] | select(.step == "user") | .done' "Onboarding status")
 
   if [ "$user_done" = "true" ]; then
     ok "Onboarding already completed"
@@ -112,7 +127,7 @@ complete_onboarding() {
     -d "{\"client_id\":\"${CLIENT_ID}\",\"name\":\"Admin\",\"username\":\"${ADMIN_USER}\",\"password\":\"${ADMIN_PASS}\",\"language\":\"en\"}")
 
   local auth_code
-  auth_code=$(echo "$auth_response" | jq -r '.auth_code')
+  auth_code=$(jq_or_die "$auth_response" '.auth_code' "Create admin user")
 
   if [ -z "$auth_code" ] || [ "$auth_code" = "null" ]; then
     err "Failed to create user: ${auth_response}"
@@ -126,7 +141,7 @@ complete_onboarding() {
     --data-urlencode "client_id=${CLIENT_ID}")
 
   local access_token
-  access_token=$(echo "$token_response" | jq -r '.access_token')
+  access_token=$(jq_or_die "$token_response" '.access_token' "Token exchange")
 
   if [ -z "$access_token" ] || [ "$access_token" = "null" ]; then
     err "Failed to get access token: ${token_response}"
