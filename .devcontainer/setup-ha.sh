@@ -95,6 +95,14 @@ supervisor_api_jq_test() {
 
 # --- Step 0: Wait for HA to be ready ---
 
+# Print an addon's log to help diagnose a failure
+dump_addon_logs() {
+  local slug="$1"
+  echo "::group::${slug} logs"
+  supervisor_api GET "/addons/${slug}/logs" || true
+  echo "::endgroup::"
+}
+
 # Best-effort Home Assistant Core state from the Supervisor, for diagnostics
 ha_core_state() {
   local info
@@ -327,16 +335,17 @@ configure_and_start_postgres() {
 
 wait_for_postgres_ready() {
   local postgres_slug="$1"
+  # Supervisor renamed add-on containers from addon_* to app_*, so try both.
   local containers=("app_${postgres_slug}" "addon_${postgres_slug}")
 
   log "Waiting for PostgreSQL database to accept connections..."
   local max_attempts=60
   local attempt=0
-  local container
+  local container probe
   while [ "$attempt" -lt "$max_attempts" ]; do
     for container in "${containers[@]}"; do
-      if docker exec -e "PGPASSWORD=${POSTGRES_PASSWORD}" "$container" \
-          psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1" > /dev/null 2>&1; then
+      if probe=$(docker exec -e "PGPASSWORD=${POSTGRES_PASSWORD}" "$container" \
+          psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1" 2>&1); then
         ok "PostgreSQL database is ready"
         return 0
       fi
@@ -344,6 +353,8 @@ wait_for_postgres_ready() {
     sleep 5
     attempt=$((attempt + 1))
   done
+  warn "Last psql output: ${probe}"
+  dump_addon_logs "$postgres_slug"
   err "PostgreSQL database did not become ready in time"
 }
 
@@ -426,7 +437,7 @@ configure_and_start_ghostfolio() {
     attempt=$((attempt + 1))
   done
   if [ "$state" != "started" ]; then
-    supervisor_api GET "/addons/${GHOSTFOLIO_SLUG}/logs" || true
+    dump_addon_logs "${GHOSTFOLIO_SLUG}"
     err "Ghostfolio addon did not start in time (state: ${state})"
   fi
 
@@ -448,6 +459,7 @@ wait_for_ghostfolio_ready() {
     sleep 5
     attempt=$((attempt + 1))
   done
+  dump_addon_logs "${GHOSTFOLIO_SLUG}"
   err "Ghostfolio did not become ready in time (never saw 'Listening at http://0.0.0.0:3333' in logs)"
 }
 
