@@ -15,6 +15,10 @@ set -euo pipefail
 export SUPERVISOR_CHANNEL="${1:-stable}"
 SUPERVISOR_LOG="/tmp/supervisor.log"
 
+# The v6 devcontainer exposes host AppArmor through OS Agent, but profiles
+# applied to containers in its nested Docker daemon break the PostgreSQL image.
+sudo systemctl stop haos-agent
+
 # supervisor_run hardcodes SUPERVISOR_DEV=1, which makes the Supervisor force its
 # update channel to dev and so install nightly Home Assistant builds whatever
 # channel is asked for.
