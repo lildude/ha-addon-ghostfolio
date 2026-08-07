@@ -316,14 +316,35 @@ configure_and_start_postgres() {
     state=$(supervisor_api_jq "/addons/${postgres_slug}/info" '.data.state')
     if [ "$state" = "started" ]; then
       ok "PostgreSQL addon is running"
-      # Give postgres time to initialize the database
-      sleep 10
+      wait_for_postgres_ready "$postgres_slug"
       return 0
     fi
     sleep 5
     attempt=$((attempt + 1))
   done
   err "PostgreSQL addon did not start in time"
+}
+
+wait_for_postgres_ready() {
+  local postgres_slug="$1"
+  local containers=("app_${postgres_slug}" "addon_${postgres_slug}")
+
+  log "Waiting for PostgreSQL database to accept connections..."
+  local max_attempts=60
+  local attempt=0
+  local container
+  while [ "$attempt" -lt "$max_attempts" ]; do
+    for container in "${containers[@]}"; do
+      if docker exec -e "PGPASSWORD=${POSTGRES_PASSWORD}" "$container" \
+          psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1" > /dev/null 2>&1; then
+        ok "PostgreSQL database is ready"
+        return 0
+      fi
+    done
+    sleep 5
+    attempt=$((attempt + 1))
+  done
+  err "PostgreSQL database did not become ready in time"
 }
 
 # --- Step 5: Install and configure Ghostfolio ---
@@ -405,6 +426,7 @@ configure_and_start_ghostfolio() {
     attempt=$((attempt + 1))
   done
   if [ "$state" != "started" ]; then
+    supervisor_api GET "/addons/${GHOSTFOLIO_SLUG}/logs" || true
     err "Ghostfolio addon did not start in time (state: ${state})"
   fi
 
