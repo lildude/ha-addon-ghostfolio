@@ -15,12 +15,6 @@ set -euo pipefail
 export SUPERVISOR_CHANNEL="${1:-stable}"
 SUPERVISOR_LOG="/tmp/supervisor.log"
 
-# The devcontainer has no working AppArmor, so stub the parser out and have the
-# Supervisor mount the stub into the containers it starts.
-printf '#!/bin/sh\nexit 0\n' | sudo tee /usr/sbin/apparmor_parser > /dev/null
-sudo chmod +x /usr/sbin/apparmor_parser
-sudo sed -i 's|docker run --rm --privileged|docker run --rm --privileged -v /usr/sbin/apparmor_parser:/usr/sbin/apparmor_parser:ro|' /usr/bin/supervisor_run
-
 # supervisor_run hardcodes SUPERVISOR_DEV=1, which makes the Supervisor force its
 # update channel to dev and so install nightly Home Assistant builds whatever
 # channel is asked for.
