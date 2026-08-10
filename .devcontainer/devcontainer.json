@@ -1,6 +1,6 @@
 {
   "name": "HA Addon: Ghostfolio",
-  "image": "ghcr.io/home-assistant/devcontainer:4-apps",
+  "image": "ghcr.io/home-assistant/devcontainer:6-apps",
   "overrideCommand": false,
   "remoteUser": "vscode",
   "appPort": ["7123:8123", "7180:80", "7357:4357"],
