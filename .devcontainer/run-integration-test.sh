@@ -15,6 +15,8 @@ set -euo pipefail
 export SUPERVISOR_CHANNEL="${1:-stable}"
 SUPERVISOR_LOG="/tmp/supervisor.log"
 
+bash .devcontainer/prepare-local-addon.sh
+
 # The v6 devcontainer exposes host AppArmor through OS Agent, but profiles
 # applied to containers in its nested Docker daemon break the PostgreSQL image.
 sudo systemctl stop haos-agent

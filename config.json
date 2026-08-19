@@ -5,41 +5,41 @@
   "description": "Privacy-first, open source dashboard for your personal finances.",
   "url": "https://github.com/lildude/ha-addon-ghostfolio",
   "arch": [
-      "aarch64",
-      "amd64"
+    "aarch64",
+    "amd64"
   ],
   "init": false,
   "ingress": true,
   "panel_icon": "mdi:ghost",
   "ports": {
-      "3333/tcp": null
+    "3333/tcp": null
   },
   "ports_description": {
     "3333/tcp": "Web interface (not required for Home Assistant ingress)"
   },
   "options": {
-      "database_user": null,
-      "database_pass": null,
-      "database_port": 5432,
-      "database_host": null,
-      "database_name": "ghostfolio",
-      "env_vars": []
+    "database_user": null,
+    "database_pass": null,
+    "database_port": 5432,
+    "database_host": null,
+    "database_name": "ghostfolio",
+    "env_vars": []
   },
   "schema": {
-      "database_user": "str",
-      "database_pass": "password",
-      "database_port": "int",
-      "database_host": "str",
-      "database_name": "str",
-      "api_key_coingecko_demo": "str?",
-      "api_key_coingecko_pro": "str?",
-      "access_token_salt": "str?",
-      "jwt_secret_key": "str?",
-      "silent": "bool?",
-      "env_vars": [{
-          "name": "str?",
-          "value": "str?"
-      }]
+    "database_user": "str",
+    "database_pass": "password",
+    "database_port": "int",
+    "database_host": "str",
+    "database_name": "str",
+    "api_key_coingecko_demo": "str?",
+    "api_key_coingecko_pro": "str?",
+    "access_token_salt": "str?",
+    "jwt_secret_key": "str?",
+    "silent": "bool?",
+    "env_vars": [{
+      "name": "str?",
+      "value": "str?"
+    }]
   },
   "image": "ghcr.io/lildude/ha-addon-ghostfolio-{arch}"
 }

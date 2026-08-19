@@ -1,41 +1,46 @@
 #!/usr/bin/env bash
-# setup-ha.sh - Idempotent Home Assistant setup for Ghostfolio development
+# setup-ha.sh - Idempotent Home Assistant setup for addon development
 #
 # This script:
 # 1. Completes HA onboarding (creates admin user)
-# 2. Adds the alexbelgium addon repository
+# 2. Adds the alexbelgium addon repository (for PostgreSQL)
 # 3. Installs and starts PostgreSQL 17
-# 4. Installs, configures, and starts the local Ghostfolio addon
+# 4. Installs, configures, and starts the local addon
 #
 # Usage: bash .devcontainer/setup-ha.sh
+#        DEBUG=1 bash .devcontainer/setup-ha.sh   # verbose output + error details
 #
 # Safe to run multiple times (idempotent).
 
 set -euo pipefail
 
+# --- Addon-specific configuration ---
+ADDON_NAME="$(jq -r '.name' config.json)"
+ADDON_SLUG="local_$(jq -r '.slug' config.json)"
+ADDON_PORT="$(jq -r '.ports | keys[0] | split("/") | .[0]' config.json)"
+ADDON_READY_LOG="Listening at http://"
+
+# --- Home Assistant configuration ---
 HA_HOST="localhost"
 # Core binds port 80 under the Supervisor from 2026.8 onwards, and 8123 before
 # that, so wait_for_ha resolves the port at runtime rather than assuming one.
 HA_PORTS=(80 8123)
 HA_URL=""
 CLIENT_ID=""
-
 ALEXBELGIUM_REPO="https://github.com/alexbelgium/hassio-addons"
 ADMIN_USER="admin"
 ADMIN_PASS="pass"
 
+# --- PostgreSQL configuration ---
 POSTGRES_PASSWORD="homeassistant"
 POSTGRES_USER="postgres"
-POSTGRES_DB="ghostfolio"
+POSTGRES_DB="${ADDON_NAME,,}"
 POSTGRES_PORT=5432
 # Addon slug = repo_hash + "_" + addon_slug_from_config
 # Repo hash: first 8 chars of sha1("https://github.com/alexbelgium/hassio-addons")
 POSTGRES_SLUG="db21ed7f_postgres_latest"
 
-GHOSTFOLIO_SLUG="local_ghostfolio"
-
 # --- Helpers ---
-
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 RED='\033[0;31m'
@@ -358,47 +363,47 @@ wait_for_postgres_ready() {
   err "PostgreSQL database did not become ready in time"
 }
 
-# --- Step 5: Install and configure Ghostfolio ---
+# --- Step 5: Install and configure addon ---
 
-install_ghostfolio() {
-  log "Checking Ghostfolio addon status..."
+install_addon() {
+  log "Checking ${ADDON_NAME} addon status..."
   local version
-  version=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.version // empty')
+  version=$(supervisor_api_jq "/addons/${ADDON_SLUG}/info" '.data.version // empty')
 
   if [ -n "$version" ]; then
     local state
-    state=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.state')
-    ok "Ghostfolio addon already installed (version: ${version}, state: ${state})"
+    state=$(supervisor_api_jq "/addons/${ADDON_SLUG}/info" '.data.state')
+    ok "${ADDON_NAME} addon already installed (version: ${version}, state: ${state})"
     return 0
   fi
 
-  log "Installing Ghostfolio addon..."
-  supervisor_api POST "/addons/${GHOSTFOLIO_SLUG}/install" > /dev/null
+  log "Installing ${ADDON_NAME} addon..."
+  supervisor_api POST "/addons/${ADDON_SLUG}/install" > /dev/null
 
   # Wait for installation to complete
-  log "Waiting for Ghostfolio installation..."
+  log "Waiting for ${ADDON_NAME} installation..."
   local max_attempts=60
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
-    version=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.version // empty')
+    version=$(supervisor_api_jq "/addons/${ADDON_SLUG}/info" '.data.version // empty')
     if [ -n "$version" ]; then
-      ok "Ghostfolio addon installed (version: ${version})"
+      ok "${ADDON_NAME} addon installed (version: ${version})"
       return 0
     fi
     sleep 5
     attempt=$((attempt + 1))
   done
-  err "Ghostfolio addon installation timed out"
+  err "${ADDON_NAME} addon installation timed out"
 }
 
-configure_and_start_ghostfolio() {
+configure_and_start_addon() {
   local postgres_slug="$1"
 
   # Derive the postgres hostname from its slug (underscores → hyphens)
   local postgres_host
   postgres_host=$(echo "$postgres_slug" | tr '_' '-')
 
-  log "Configuring Ghostfolio addon (db host: ${postgres_host})..."
+  log "Configuring ${ADDON_NAME} addon (db host: ${postgres_host})..."
   local options_json
   options_json=$(jq -n \
     --arg user "$POSTGRES_USER" \
@@ -408,28 +413,28 @@ configure_and_start_ghostfolio() {
     --arg db "$POSTGRES_DB" \
     '{options: {database_user: $user, database_pass: $pass, database_port: $port, database_host: $host, database_name: $db, env_vars: []}}')
 
-  supervisor_api_with_body POST "/addons/${GHOSTFOLIO_SLUG}/options" \
+  supervisor_api_with_body POST "/addons/${ADDON_SLUG}/options" \
     "${options_json}" > /dev/null
 
   # Check if already running
   local state
-  state=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.state')
+  state=$(supervisor_api_jq "/addons/${ADDON_SLUG}/info" '.data.state')
 
   if [ "$state" = "started" ]; then
-    ok "Ghostfolio addon already running"
-    wait_for_ghostfolio_ready
+    ok "${ADDON_NAME} addon already running"
+    wait_for_addon_ready
     return 0
   fi
 
-  log "Starting Ghostfolio addon..."
-  supervisor_api POST "/addons/${GHOSTFOLIO_SLUG}/start" > /dev/null
+  log "Starting ${ADDON_NAME} addon..."
+  supervisor_api POST "/addons/${ADDON_SLUG}/start" > /dev/null
 
   # Wait for addon state to become "started"
-  log "Waiting for Ghostfolio addon to start..."
+  log "Waiting for ${ADDON_NAME} addon to start..."
   local max_attempts=60
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
-    state=$(supervisor_api_jq "/addons/${GHOSTFOLIO_SLUG}/info" '.data.state')
+    state=$(supervisor_api_jq "/addons/${ADDON_SLUG}/info" '.data.state')
     if [ "$state" = "started" ]; then
       break
     fi
@@ -437,36 +442,36 @@ configure_and_start_ghostfolio() {
     attempt=$((attempt + 1))
   done
   if [ "$state" != "started" ]; then
-    dump_addon_logs "${GHOSTFOLIO_SLUG}"
-    err "Ghostfolio addon did not start in time (state: ${state})"
+    dump_addon_logs "${ADDON_SLUG}"
+    err "${ADDON_NAME} addon did not start in time (state: ${state})"
   fi
 
-  wait_for_ghostfolio_ready
-  ok "Ghostfolio addon started and ready"
+  wait_for_addon_ready
+  ok "${ADDON_NAME} addon started and ready"
 }
 
-wait_for_ghostfolio_ready() {
-  log "Waiting for Ghostfolio to be ready (listening on port 3333)..."
+wait_for_addon_ready() {
+  log "Waiting for ${ADDON_NAME} to be ready (listening on port ${ADDON_PORT})..."
   local max_attempts=60
   local attempt=0
   while [ "$attempt" -lt "$max_attempts" ]; do
     local logs
-    logs=$(supervisor_api GET "/addons/${GHOSTFOLIO_SLUG}/logs" 2>/dev/null || true)
-    if echo "$logs" | grep -q "Listening at http://0.0.0.0:3333"; then
-      ok "Ghostfolio is ready"
+    logs=$(supervisor_api GET "/addons/${ADDON_SLUG}/logs" 2>/dev/null || true)
+    if echo "$logs" | grep -q "${ADDON_READY_LOG}"; then
+      ok "${ADDON_NAME} is ready"
       return 0
     fi
     sleep 5
     attempt=$((attempt + 1))
   done
-  dump_addon_logs "${GHOSTFOLIO_SLUG}"
-  err "Ghostfolio did not become ready in time (never saw 'Listening at http://0.0.0.0:3333' in logs)"
+  dump_addon_logs "${ADDON_SLUG}"
+  err "${ADDON_NAME} did not become ready in time (never saw '${ADDON_READY_LOG}' in logs)"
 }
 
 # --- Main ---
 
 main() {
-  log "Setting up Home Assistant for Ghostfolio development"
+  log "Setting up Home Assistant for ${ADDON_NAME} development"
   echo ""
 
   wait_for_ha
@@ -475,8 +480,8 @@ main() {
 
   install_postgres "$POSTGRES_SLUG"
   configure_and_start_postgres "$POSTGRES_SLUG"
-  install_ghostfolio
-  configure_and_start_ghostfolio "$POSTGRES_SLUG"
+  install_addon
+  configure_and_start_addon "$POSTGRES_SLUG"
 
   echo ""
   ok "Setup complete!"
@@ -489,7 +494,7 @@ main() {
   log "  Home Assistant: ${HA_URL} (user: ${ADMIN_USER}, pass: ${ADMIN_PASS})"
   log "    from the host: http://localhost:${host_port}"
   log "  PostgreSQL: ${POSTGRES_SLUG} (user: ${POSTGRES_USER}, db: ${POSTGRES_DB})"
-  log "  Ghostfolio: accessible via Home Assistant ingress"
+  log "  ${ADDON_NAME}: accessible via Home Assistant ingress"
 }
 
 main "$@"
